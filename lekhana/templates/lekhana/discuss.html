@@ -1,0 +1,112 @@
+{% extends "lekhana/base.html" %}
+{% block title %}{{ project.title }} · Discuss · Sahalekhana{% endblock %}
+{% block content %}
+<div class="ws">
+  <aside class="pane">
+    <div class="pl">Discussions</div>
+    <ul class="plain">
+      {% for c in conversations %}
+        <li><a href="?c={{ c.pk }}"{% if current and c.pk == current.pk %} class="on-link"{% endif %}>{{ c.title|default:"Untitled" }}</a>
+          <span class="meta">{{ c.get_stance_display }} · {{ c.updated_at|date:"j M" }}</span></li>
+      {% empty %}<li class="muted">None yet.</li>{% endfor %}
+    </ul>
+    <form method="post" action="{% url 'lekhana:discuss_new' project.slug %}" class="stack">
+      {% csrf_token %}
+      <label>New discussion <input name="title" placeholder="What is it about?"></label>
+      <label>The AI's role <select name="stance">{% for s in stances %}<option value="{{ s.code }}"{% if s.code == "interlocutor" %} selected{% endif %}>{{ s.label }}</option>{% endfor %}</select></label>
+      <div><button class="btn">Start</button></div>
+    </form>
+
+    <div class="pl">Your way of working</div>
+    {% for r in runs %}
+      <div class="method">
+        <b>{{ r.run.code }}</b> <span class="meta">{{ r.run.created_at|date:"j M" }}</span>
+        <ol class="steps">
+          {% for s in r.steps %}
+            <li class="{% if s.done %}done{% endif %}">
+              <span>{{ s.step.label|truncatechars:70 }}</span>
+              <code>{{ s.step.unit_id }}</code>
+              {% if s.written %}<span class="ok">{{ s.words }} words</span>
+              {% elif can_write %}
+                <form method="post" action="{% url 'lekhana:method_step' project.slug s.step.pk %}" class="inline">
+                  {% csrf_token %}<input type="hidden" name="done" value="{% if s.step.done %}0{% else %}1{% endif %}">
+                  <button class="link">{% if s.step.done %}reopen{% else %}mark done{% endif %}</button>
+                </form>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ol>
+      </div>
+    {% empty %}<p class="muted">No method started.</p>{% endfor %}
+    {% if can_write %}
+      <form method="post" action="{% url 'lekhana:method_start' project.slug %}" class="stack">
+        {% csrf_token %}
+        <label>Method <select name="code">{% for m in methods %}<option value="{{ m.code }}">{{ m.label }}</option>{% endfor %}</select></label>
+        <label>On <input name="target" placeholder="abstract, or a short section name" required></label>
+        <div><button class="btn sm">Lay out the steps</button></div>
+      </form>
+      <p class="meta">The portal prepares sections and empty units. You write them.</p>
+    {% endif %}
+  </aside>
+
+  <section class="pane">
+    {% if current %}
+      <div class="pl">{{ current.title|default:"Discussion" }}
+        <span class="muted">· started by {{ current.created_by.get_username }}</span></div>
+      <form method="post" action="{% url 'lekhana:discuss_stance' project.slug current.pk %}" class="row role">
+        {% csrf_token %}
+        <label class="inline-label">The AI is a
+          <select name="stance">{% for s in stances %}<option value="{{ s.code }}"{% if s.code == current.stance %} selected{% endif %}>{{ s.label }}</option>{% endfor %}</select>
+        </label>
+        <button class="btn sm">Set role</button>
+        {% if stance %}<span class="meta">{{ stance.summary }}</span>{% endif %}
+      </form>
+      {% if stance %}
+        <ul class="rules">{% for rule in stance.rules %}<li>{{ rule }}</li>{% endfor %}
+          <li>It can never write to the paper. At most it can put candidates in the ask panel{% if not stance.may_draft %}, which this role does not allow{% endif %}.</li>
+        </ul>
+      {% endif %}
+
+      <div class="talk">
+        {% for t in turns %}
+          <div class="turn {{ t.speaker }}" id="turn-{{ t.pk }}">
+            <span class="meta">{{ t.get_speaker_display }}{% if t.speaker == "ai" %} · {{ t.model }} · as {{ t.stance }}{% else %} · {{ t.user.get_username }}{% endif %} · {{ t.created_at|date:"j M, H:i" }}</span>
+            <p>{{ t.text|linebreaksbr }}</p>
+            {% if t.tool_log %}<p class="tools">{% for entry in t.tool_log %}<span class="tool">{{ entry.tool }}</span>{% endfor %}</p>{% endif %}
+            {% if t.flagged %}<p class="err">Broke its role: it {{ t.flagged }}. Recorded as it came.</p>{% endif %}
+          </div>
+        {% empty %}<p class="muted">Nothing said yet.</p>{% endfor %}
+      </div>
+
+      {% if not ai_configured %}<p class="warn">The AI isn't configured on this server. What you say is still recorded.</p>{% endif %}
+      <form method="post" action="{% url 'lekhana:discuss_send' project.slug current.pk %}" class="stack composer">
+        {% csrf_token %}
+        <label>Say something <textarea name="text" rows="3" required placeholder="Think out loud, or ask it to press on a claim."></textarea></label>
+        <div><button class="btn primary">Send</button> <span class="meta">The exchange is committed to the paper's record.</span></div>
+      </form>
+    {% else %}
+      <p class="muted">Start a discussion on the left. The AI reads the paper through tools; it never writes to it.</p>
+    {% endif %}
+  </section>
+
+  <aside class="pane">
+    <div class="pl">Ideas and framings</div>
+    <p class="meta">Recorded as they come up. Who thought of it is a claim until a person confirms it.</p>
+    {% for i in ideas %}
+      <div class="idea{% if not i.confirmed_at %} unconfirmed{% endif %}" id="idea-{{ i.pk }}">
+        <span class="kind">{{ i.get_kind_display }}</span>
+        <p>{{ i.text }}</p>
+        <span class="meta">from {{ i.origin }}{% if i.confirmed_at %} · confirmed by {{ i.confirmed_by.get_username }}{% if i.corrected %} (corrected){% endif %}{% else %} · <b>unconfirmed</b>{% endif %}{% if i.units %} · {{ i.units|join:", " }}{% endif %}</span>
+        {% if can_write %}
+          <form method="post" action="{% url 'lekhana:idea_attribute' project.slug i.pk %}" class="decide">
+            {% csrf_token %}
+            <button name="origin" value="writer" class="btn sm">Mine</button>
+            <button name="origin" value="ai" class="btn sm">The AI's</button>
+            {% if not i.confirmed_at %}<button name="origin" value="keep" class="link">Confirm as recorded</button>{% endif %}
+          </form>
+        {% endif %}
+      </div>
+    {% empty %}<p class="muted">None recorded yet.</p>{% endfor %}
+  </aside>
+</div>
+{% endblock %}

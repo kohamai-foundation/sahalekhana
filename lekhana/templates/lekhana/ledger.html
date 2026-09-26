@@ -1,0 +1,90 @@
+{% extends "lekhana/base.html" %}
+{% block title %}{{ project.title }} · Ledger · Sahalekhana{% endblock %}
+{% block content %}
+<section class="narrow" style="max-width:980px">
+  <h1>The record</h1>
+  <p class="muted">Every line here comes from the paper's git history. The profile counts acts by kind and by who made them. It is not a percentage of authorship.</p>
+
+  <div class="pl">Contribution profile</div>
+  <div class="tbl"><table class="tnum">
+    <thead><tr><th>Kind of act</th><th>People</th><th>AI</th><th style="width:40%">Share</th></tr></thead>
+    <tbody>
+      {% for row in profile %}
+        <tr><td>{{ row.family }}</td><td>{{ row.human }}</td><td>{{ row.ai }}</td>
+          <td>{% if row.human or row.ai %}<span class="bar h" style="width:{{ row.human_pct }}%"></span><span class="bar a" style="width:{{ row.ai_pct }}%"></span>{% else %}<span class="muted">none</span>{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% if unexamined %}<p class="err">{{ unexamined }} AI candidate{{ unexamined|pluralize }} accepted without examining. Recorded, and not counted above.</p>{% endif %}
+
+  <div class="pl">Submission</div>
+  {% if owed %}<p class="owe">Not ready: {{ owed|length }} owed slot{{ owed|pluralize }} ({% for o in owed %}{{ o.text }}{% if not forloop.last %}; {% endif %}{% endfor %}).</p>{% else %}<p class="ok">No owed slots.</p>{% endif %}
+
+  <div class="pl">How the text arrived</div>
+  {% if composition.any %}
+    <p class="tnum">{{ composition.typed_pct }}% typed here, {{ composition.pasted_pct }}% pasted
+      ({{ composition.pastes }} paste{{ composition.pastes|pluralize }}:
+      {{ composition.ai_candidate }} from the AI's candidates,
+      {{ composition.own_paper }} from elsewhere in this paper,
+      {{ composition.outside }} from outside the portal).</p>
+    <p class="meta">Pasted text is never stored — only its length and a hash, which is what lets a paste
+      be recognised as the portal's own suggestion. "Outside" covers notes, email and earlier drafts;
+      it is a fact about where text came from, not a verdict.</p>
+  {% elif tracking %}
+    <p class="muted">Nothing recorded yet.</p>
+  {% else %}
+    <p class="muted">Tracking is off for this paper.</p>
+  {% endif %}
+  {% if can_write %}
+    <form method="post" action="{% url 'lekhana:tracking' project.slug %}" class="inline">
+      {% csrf_token %}<input type="hidden" name="on" value="{% if tracking %}0{% else %}1{% endif %}">
+      <button class="btn sm">{% if tracking %}Turn tracking off{% else %}Turn tracking on{% endif %}</button>
+    </form>
+  {% endif %}
+
+  <div class="pl">Out of the portal</div>
+  <p class="row">
+    <a class="btn sm" href="{% url 'lekhana:export' project.slug %}">Export (zip)</a>
+    <a class="btn sm" href="{% url 'lekhana:export' project.slug %}?anonymise=1">Export anonymised</a>
+    {% if latex_available %}
+      <a class="btn sm" href="{% url 'lekhana:pdf' project.slug %}">Build the PDF</a>
+      <a class="btn sm" href="{% url 'lekhana:export' project.slug %}?pdf=1">Export with the PDF</a>
+    {% else %}
+      <span class="meta">No LaTeX on this server, so the PDF can't be built here. The export still carries the source.</span>
+    {% endif %}
+  </p>
+  <p class="meta">The export holds the source, a version with the portal's macros resolved, the full
+    provenance record, and a declaration of AI use generated from this ledger.</p>
+
+  <div class="pl">Who has access</div>
+  <ul class="plain">{% for m in members %}<li><b>{{ m.user.get_username }}</b> · {{ m.get_role_display }}{% if m.granted_by and m.granted_by != m.user %} · granted by {{ m.granted_by.get_username }}{% endif %}</li>{% endfor %}</ul>
+  {% if can_write %}
+    <form method="post" action="{% url 'lekhana:grant' project.slug %}" class="row">
+      {% csrf_token %}
+      <input name="username" placeholder="username" required style="max-width:14rem" aria-label="Username">
+      <select name="role" style="max-width:10rem" aria-label="Role">{% for code, label in member_roles %}<option value="{{ code }}"{% if code == "reviewer" %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      <button class="btn sm">Grant access</button>
+    </form>
+  {% endif %}
+
+  {% if pending %}
+    <div class="pl">Waiting for the next commit</div>
+    <p>{% for a in pending %}<span class="act{% if a.is_ai %} ai{% endif %}">{{ a.get_kind_display }} · {{ a.agent }}{% if a.unit_id %} · {{ a.unit_id }}{% endif %}{% if a.defect %} · {{ a.defect }}{% endif %}</span>{% endfor %}</p>
+  {% endif %}
+
+  <div class="pl">Commits</div>
+  {% for e in entries %}
+    <div class="commit">
+      <div><b>{{ e.subject }}</b></div>
+      <div class="meta"><code>{{ e.sha|slice:":7" }}</code> · {{ e.author }} · {{ e.date|slice:":16" }}</div>
+      <div>{% for a in e.acts %}<span class="act{% if a.is_ai %} ai{% endif %}" title="{{ a.seq }} {{ a.kind }}">{{ a.label }} · {{ a.agent }} · {{ a.role }}{% if a.yukti %} · {{ a.yukti }}{% endif %}{% if a.unit %} · {{ a.unit }}{% endif %}{% if a.defect %} · {{ a.defect }}{% endif %}</span>{% endfor %}</div>
+      {% if e.compose %}<div class="meta mono">compose: {{ e.compose }}</div>{% endif %}
+    </div>
+  {% empty %}<p class="muted">No commits yet.</p>{% endfor %}
+
+  <div class="pl">Anchors</div>
+  {% for a in anchors %}
+    <p class="meta"><code>{{ a.root_hash|slice:":16" }}…</code> · {{ a.log }} · {{ a.created_at|date:"j M Y, H:i" }}</p>
+  {% empty %}<p class="muted">Not anchored yet. A coordinator runs <code>manage.py anchor_lekhana</code> to fold every paper's HEAD into one timestamped hash.</p>{% endfor %}
+</section>
+{% endblock %}

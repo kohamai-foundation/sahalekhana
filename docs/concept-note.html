@@ -1,0 +1,778 @@
+<title>Sahalekhana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Tiro+Devanagari+Sanskrit&display=swap">
+<style>
+:root{
+  --ground:#EDEFEA; --surface:#F7F8F4; --ink:#1B1D22; --muted:#5A5F69; --rule:#D3D7CF;
+  --nila:#33449A; --nila-soft:rgba(51,68,154,.09);
+  --hartala:#E2AE1C; --hartala-soft:rgba(226,174,28,.26); --hartala-ink:#7A5B00;
+  --sindura:#A3372A;
+  --serif:"Source Serif 4","Iowan Old Style","Charter",Georgia,serif;
+  --deva:"Tiro Devanagari Sanskrit","Noto Serif Devanagari","Kohinoor Devanagari",serif;
+  --mono:"Noto Sans Mono","SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#14161B; --surface:#1C1F26; --ink:#E4E5DF; --muted:#9BA0AA; --rule:#2E323B;
+    --nila:#A3B0F4; --nila-soft:rgba(163,176,244,.12);
+    --hartala:#E8C14F; --hartala-soft:rgba(232,193,79,.2); --hartala-ink:#E8C14F;
+    --sindura:#E58A76;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#14161B; --surface:#1C1F26; --ink:#E4E5DF; --muted:#9BA0AA; --rule:#2E323B;
+  --nila:#A3B0F4; --nila-soft:rgba(163,176,244,.12);
+  --hartala:#E8C14F; --hartala-soft:rgba(232,193,79,.2); --hartala-ink:#E8C14F;
+  --sindura:#E58A76;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.62;
+  font-optical-sizing:auto;-webkit-font-smoothing:antialiased}
+a{color:var(--nila);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--hartala);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 clamp(18px,4vw,48px)}
+h1,h2,h3{text-wrap:balance;font-weight:600;line-height:1.2}
+h2{font-size:1.55rem;margin:0 0 .9rem}
+h3{font-size:1.08rem;margin:1.6rem 0 .5rem}
+p{margin:0 0 1rem}
+.label{font-family:var(--mono);font-size:.7rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+code,.mono{font-family:var(--mono);font-size:.84em}
+.deva{font-family:var(--deva)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* masthead */
+header.mast{padding:56px 0 34px;border-bottom:1px solid var(--rule)}
+.mast .label{display:flex;gap:18px;flex-wrap:wrap}
+.mast h1{margin:18px 0 0;display:flex;align-items:baseline;gap:22px;flex-wrap:wrap}
+.mast h1 .deva{font-size:clamp(3rem,8vw,5.4rem);font-weight:400;line-height:1.05}
+.mast h1 .iast{font-family:var(--mono);font-size:.95rem;font-weight:400;letter-spacing:.14em;color:var(--muted)}
+.mast .lede{font-size:1.28rem;line-height:1.5;max-width:40ch;margin:18px 0 22px}
+.mast .facts{display:flex;flex-wrap:wrap;gap:8px 28px;font-size:.88rem;color:var(--muted)}
+.mast .facts b{color:var(--ink);font-weight:600}
+
+/* commentary layout: main column + margin glosses */
+section.sec{display:grid;grid-template-columns:minmax(0,68ch) minmax(0,15.5rem);gap:0 56px;
+  padding:52px 0 36px;border-bottom:1px solid var(--rule)}
+.sec>.main{min-width:0}
+.sec>.rail{min-width:0;padding-top:2.6rem;display:flex;flex-direction:column;gap:18px}
+.sec.wide{grid-template-columns:minmax(0,1fr)}
+.gloss{font-size:.84rem;line-height:1.5;color:var(--muted);border-left:2px solid var(--hartala);padding-left:12px}
+.gloss b{color:var(--ink);font-weight:600}
+.gloss .deva{font-size:1rem;color:var(--ink)}
+.secno{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.08em;display:block;margin-bottom:6px}
+@media (max-width:980px){
+  section.sec{grid-template-columns:minmax(0,1fr)}
+  .sec>.rail{padding-top:.4rem}
+}
+
+/* hartāla + nīla marks */
+.hl{background:linear-gradient(transparent 55%,var(--hartala-soft) 55%);padding:0 1px}
+.ai{color:var(--nila)}
+.pull{font-size:1.12rem;border-left:3px solid var(--nila);padding:4px 0 4px 16px;margin:1.2rem 0}
+
+/* terms */
+dl.terms{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:0 28px;margin:1rem 0 0}
+dl.terms div{padding:12px 0;border-top:1px solid var(--rule)}
+dl.terms dt{font-weight:600}
+dl.terms dt .deva{font-weight:400;color:var(--muted);margin-left:6px}
+dl.terms dd{margin:2px 0 0;font-size:.92rem;color:var(--muted)}
+
+/* strata */
+.strata{margin:1.2rem 0 0;border:1px solid var(--rule);background:var(--surface)}
+.stratum{display:grid;grid-template-columns:9.5rem minmax(0,1fr) minmax(0,1.1fr);gap:16px;padding:14px 18px;border-top:1px solid var(--rule);align-items:baseline}
+.stratum:first-child{border-top:0}
+.stratum .nm{font-weight:600}
+.stratum .src{font-size:.9rem}
+.stratum .rec{font-size:.9rem;color:var(--muted)}
+.stratum.seam{background:transparent;border-top:2px dashed var(--hartala);padding:6px 18px;display:block;font-family:var(--mono);font-size:.7rem;color:var(--hartala-ink);letter-spacing:.06em}
+@media (max-width:700px){.stratum{grid-template-columns:1fr;gap:2px}}
+
+/* yukti grid */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:1rem 0 0}
+.chip{font-family:var(--mono);font-size:.74rem;border:1px solid var(--rule);background:transparent;color:var(--ink);padding:5px 10px;border-radius:2px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.chip .n{color:var(--muted);margin-left:4px}
+.chip[aria-pressed="true"] .n{color:var(--ground);opacity:.7}
+.ygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:0 28px;margin-top:14px}
+.y{padding:14px 0 12px;border-top:1px solid var(--rule)}
+.y .h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.y .iast{font-weight:600;font-size:1.05rem}
+.y .dv{font-family:var(--deva);color:var(--muted)}
+.y .gl{font-style:italic;font-size:.92rem;margin:1px 0 4px}
+.y .pp{font-size:.88rem;color:var(--muted);line-height:1.45}
+.y .fam{font-family:var(--mono);font-size:.64rem;letter-spacing:.07em;text-transform:uppercase;color:var(--hartala-ink)}
+
+/* sequences */
+.seqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;margin-top:1rem}
+.seq h3{margin-top:0}
+.seq ol{list-style:none;margin:0;padding:0;counter-reset:s}
+.seq li{counter-increment:s;display:grid;grid-template-columns:1.6rem 1fr;padding:8px 0;border-top:1px solid var(--rule);font-size:.94rem}
+.seq li::before{content:counter(s);font-family:var(--mono);font-size:.75rem;color:var(--muted);padding-top:3px}
+.seq li b{font-weight:600}
+.seq li span{display:block;color:var(--muted);font-size:.88rem}
+
+/* tables */
+.tbl{overflow-x:auto;margin:1rem 0}
+table{border-collapse:collapse;width:100%;font-size:.9rem;line-height:1.45}
+th{font-family:var(--mono);font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid var(--ink)}
+td{padding:9px 12px 9px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+td.nw{white-space:nowrap}
+.who-h{color:var(--ink);font-weight:600}
+.who-a{color:var(--nila);font-weight:600}
+.defect{font-family:var(--mono);font-size:.78rem;color:var(--sindura)}
+.typed{font-family:var(--mono);font-size:.78rem;color:var(--hartala-ink)}
+
+/* act families */
+.fams{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:24px 32px;margin-top:1rem}
+.fam h3{margin:0 0 2px;font-size:1rem}
+.fam .why{font-size:.86rem;color:var(--muted);margin-bottom:6px}
+.fam ul{margin:0;padding:0;list-style:none;font-size:.9rem}
+.fam li{padding:4px 0;border-top:1px solid var(--rule)}
+.fam li i{color:var(--muted)}
+
+/* worked example: paper + handles */
+.bench{display:grid;grid-template-columns:13.5rem minmax(0,1fr) minmax(0,21rem);gap:0;border:1px solid var(--rule);background:var(--surface);margin-top:1.2rem}
+.handles{padding:18px;border-right:1px solid var(--rule);display:flex;flex-direction:column;gap:6px}
+.hbtn{text-align:left;font-family:var(--serif);font-size:.9rem;background:transparent;border:1px solid transparent;color:var(--ink);padding:7px 10px;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.hbtn:hover{border-color:var(--rule)}
+.hbtn[aria-pressed="true"]{border-color:var(--ink);background:var(--ground)}
+.hbtn .c{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.paper{padding:22px 26px;font-size:1rem;line-height:1.75;min-width:0}
+.paper h4{font-size:1rem;margin:0 0 10px;font-weight:600}
+.paper p{margin:0 0 .9rem}
+.u{cursor:pointer;border-radius:2px;transition:background-color .15s}
+.u:hover{background:var(--nila-soft)}
+.u.ai{text-decoration:underline dotted;text-decoration-color:var(--nila);text-underline-offset:4px}
+.u.slot{font-family:var(--mono);font-size:.8rem;border:1px dashed var(--muted);padding:1px 6px;color:var(--muted)}
+.u.corr{background:linear-gradient(transparent 55%,var(--hartala-soft) 55%)}
+.u.on{outline:2px solid var(--hartala);outline-offset:1px}
+.u.sel{background:var(--nila-soft)}
+.paper.filtering .u:not(.on){opacity:.55}
+.thread{padding:18px;border-left:1px solid var(--rule);min-width:0}
+.thread h4{margin:4px 0 10px;font-size:.98rem}
+.thread ol{list-style:none;margin:0;padding:0}
+.thread li{padding:8px 0;border-top:1px solid var(--rule);font-size:.86rem;line-height:1.45}
+.thread .meta{font-family:var(--mono);font-size:.68rem;color:var(--muted);display:block;margin-bottom:2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.8rem;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.sw{display:inline-block;width:22px;height:10px}
+@media (max-width:1060px){.bench{grid-template-columns:1fr}.handles{border-right:0;border-bottom:1px solid var(--rule);flex-direction:row;flex-wrap:wrap}.thread{border-left:0;border-top:1px solid var(--rule)}}
+
+/* profile bars */
+.bar{display:inline-block;height:9px;vertical-align:middle}
+.bar.h{background:var(--ink)} .bar.a{background:var(--nila)}
+
+/* portal schematic */
+.portal{display:grid;grid-template-columns:13rem minmax(0,1fr) 19rem;border:1px solid var(--ink);background:var(--surface);margin:1.2rem 0 .6rem;font-size:.84rem}
+.portal>div{min-width:0;padding:12px 14px}
+.portal .bar-top{grid-column:1/-1;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.7rem;color:var(--muted);padding:8px 14px}
+.portal .bar-top b{color:var(--ink);font-weight:500}
+.portal .pane-l{border-right:1px solid var(--rule)}
+.portal .pane-r{border-left:1px solid var(--rule)}
+.portal .pl{font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.portal ul{list-style:none;margin:0 0 12px;padding:0}
+.portal li{padding:3px 0;display:flex;justify-content:space-between;gap:8px}
+.portal .ok{color:var(--muted);font-family:var(--mono);font-size:.7rem}
+.portal .owe{color:var(--sindura);font-family:var(--mono);font-size:.7rem}
+.portal pre{margin:0;border:0;background:transparent;padding:0;font-size:.74rem}
+.portal .tabs{display:flex;gap:4px;margin-bottom:10px;font-family:var(--mono);font-size:.68rem}
+.portal .tabs span{padding:3px 8px;border:1px solid var(--rule)}
+.portal .tabs span.on{border-color:var(--ink);color:var(--ink)}
+.portal .req{border:1px solid var(--rule);padding:8px;margin-bottom:8px;background:var(--ground)}
+.portal .cand{padding:7px 0;border-top:1px solid var(--rule)}
+.portal .cand .r{font-family:var(--mono);font-size:.68rem;display:block;margin-top:2px}
+.portal .cand .r.acc{color:var(--nila)} .portal .cand .r.rej{color:var(--sindura)}
+@media (max-width:1000px){.portal{grid-template-columns:1fr}.portal .pane-l,.portal .pane-r{border:0;border-top:1px solid var(--rule)}}
+
+pre{font-family:var(--mono);font-size:.78rem;line-height:1.55;background:var(--surface);border:1px solid var(--rule);padding:14px 16px;overflow-x:auto;margin:1rem 0}
+pre .k{color:var(--hartala-ink)} pre .c{color:var(--muted)} pre .a{color:var(--nila)}
+.note{font-size:.85rem;color:var(--muted)}
+ol.ranked{padding-left:1.3rem} ol.ranked li{margin-bottom:.6rem}
+footer{padding:36px 0 60px;font-size:.86rem;color:var(--muted)}
+footer ul{padding-left:1.1rem;margin:.4rem 0 1rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="label"><span>Concept note · v0.1</span><span>14 September 2026</span><span>heritage-semantics / docs / sahalekhana</span></div>
+  <h1><span class="deva" lang="sa">सहलेखन</span><span class="iast">SAHALEKHANA · CO-WRITING</span></h1>
+  <p class="lede">Writing a paper with an AI, and keeping an honest record of who did what.</p>
+  <div class="facts">
+    <span>Grammar of moves: <b>tantrayukti</b></span>
+    <span>Rules of fair argument: <b>Nyāya vāda</b></span>
+    <span>Memory: <b>a signed version ledger</b></span>
+    <span class="tnum">Ontology: <a href="sahalekhana.ttl">sahalekhana.ttl</a> · 89 classes · 69 properties · 1,145 triples</span>
+  </div>
+</header>
+
+<!-- 1 -->
+<section class="sec">
+  <div class="main">
+    <span class="secno">1</span>
+    <h2>The wrong question</h2>
+    <p>An AI can now draft a whole paper. So “did a human write this?” no longer tells a reader much.</p>
+    <p>Three questions are more useful. What did each party actually do? What kind of move was it? Did it hold up when examined?</p>
+    <p>Today the record of that work is one paragraph. Our own SEMANTiCS 2026 demo paper declares that the authors <span class="hl">“used Anthropic Claude for outline structuring and copy-editing.”</span> The sentence is true. It tells a reader almost nothing about which claims, examples or objections came from where.</p>
+    <p>The review side is co-written too. That paper got five reviews. Three read as machine-generated: fluent summaries with nothing a reader could check. One human review carried almost all the usable signal.</p>
+    <p>The history is missing as well. In the <code>hss</code> repository, the <code>paper/</code> directory is git-ignored. Every draft, reviewer reply and camera-ready fix lives in backup files and memory notes. None of it sits in a ledger.</p>
+    <p><b>Sahalekhana</b> (Sanskrit for co-writing) is a proposal to fix this. The writer picks moves from a classical grammar of composition. The AI fills those moves in with sentences, facts, references and counter-arguments. Each move, from either side, is logged as a typed, signed act. The record is private by default and can be queried by people entitled to see it.</p>
+  </div>
+  <aside class="rail">
+    <div class="gloss"><b>Why act-level.</b> CRediT, the current standard, gives 14 contributor roles per paper. That tells you someone did “writing – review &amp; editing”. It can’t tell you they caught the fabricated citation in §3.</div>
+    <div class="gloss"><b>Not a detector.</b> This doesn’t guess authorship from finished text. It records acts while the writing happens.</div>
+  </aside>
+</section>
+
+<!-- terms -->
+<section class="sec wide">
+  <div class="main">
+    <span class="secno">Terms, defined before use</span>
+    <h2>Twelve words this page relies on</h2>
+    <p class="note" style="max-width:68ch">A rejected ISWC review of ours listed five terms the paper used without defining them. So every Sanskrit term here is defined first. Sanskrit is used only where it names a move that English would need a whole phrase for. That rule comes from the hss deliberation vocabulary.</p>
+    <dl class="terms">
+      <div><dt>Tantrayukti <span class="deva">तन्त्रयुक्ति</span></dt><dd>The devices a treatise is built from, and read by. Kauṭilya’s <i>Arthaśāstra</i> (Book 15) lists 32.</dd></div>
+      <div><dt>Yukti <span class="deva">युक्ति</span></dt><dd>One such device: stating a topic, giving a reason, citing, offering an analogy, stating an exception.</dd></div>
+      <div><dt>Vāda <span class="deva">वाद</span></dt><dd>A discussion in which both sides seek the truth, as opposed to seeking to win (Nyāyasūtra 1.2.1).</dd></div>
+      <div><dt>Pūrvapakṣa <span class="deva">पूर्वपक्ष</span></dt><dd>The opposing view, stated fairly and at full strength before it is answered.</dd></div>
+      <div><dt>Uttarapakṣa <span class="deva">उत्तरपक्ष</span></dt><dd>The reply to the opposing view.</dd></div>
+      <div><dt>Nirṇaya <span class="deva">निर्णय</span></dt><dd>The decision that settles a discussion and fixes the text.</dd></div>
+      <div><dt>Hetvābhāsa <span class="deva">हेत्वाभास</span></dt><dd>A pseudo-reason: something that looks like support but isn’t. Nyāya names five kinds.</dd></div>
+      <div><dt>Nigrahasthāna <span class="deva">निग्रहस्थान</span></dt><dd>A point at which an argument fails, such as irrelevance, padding or an unanswered objection. Nyāya lists 22.</dd></div>
+      <div><dt>Prayojaka <span class="deva">प्रयोजक</span></dt><dd>Pāṇini’s term for the agent who causes another to act. The researcher who instructs the AI plays this role.</dd></div>
+      <div><dt>Vimarśa <span class="deva">विमर्श</span></dt><dd>The whole deliberation behind one piece of text: requests, candidates, rejections, checks. The sub-work behind a sentence.</dd></div>
+      <div><dt>Adhikāra <span class="deva">अधिकार</span></dt><dd>Entitlement. Here it means a grant that lets someone query the record, at a set depth, for a stated purpose.</dd></div>
+      <div><dt>Slēvā</dt><dd>The countable acknowledgement of work, already live on the Bhāṣā translation workbench. It isn’t <i>sevā</i> (service, which can’t be measured) and it isn’t <i>slavery</i>.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="sec">
+  <div class="main">
+    <span class="secno">2</span>
+    <h2>Six strata</h2>
+    <p>The design has six layers. Each borrows from a discipline that already solved that layer’s problem, often centuries ago.</p>
+    <div class="strata" role="table" aria-label="The six strata">
+      <div class="stratum" role="row"><span class="nm" role="cell">Grammar</span><span class="src" role="cell">Tantrayukti, 32 devices</span><span class="rec" role="cell">Every text unit and every act is typed by the device it enacts.</span></div>
+      <div class="stratum" role="row"><span class="nm" role="cell">Templates</span><span class="src" role="cell">Mīmāṃsā adhikaraṇa; Nyāya five-part argument</span><span class="rec" role="cell">The ordered steps a section follows.</span></div>
+      <div class="stratum" role="row"><span class="nm" role="cell">Roles</span><span class="src" role="cell">Pāṇini’s kāraka (1.4.54–55)</span><span class="rec" role="cell">Who acted, and on whose direction.</span></div>
+      <div class="stratum" role="row"><span class="nm" role="cell">Conduct</span><span class="src" role="cell">Nyāya vāda, pseudo-reasons, points of failure</span><span class="rec" role="cell">Moves between human and AI, and the defects they name.</span></div>
+      <div class="stratum seam" role="row"><span role="cell">SEAM · above: what the text says · below: who may do what</span></div>
+      <div class="stratum" role="row"><span class="nm" role="cell">Ledger</span><span class="src" role="cell">W3C PROV-O, git, public hash anchoring</span><span class="rec" role="cell">Every act committed, signed, hashed. Content stays private.</span></div>
+      <div class="stratum" role="row"><span class="nm" role="cell">Recognition &amp; access</span><span class="src" role="cell">Slēvā ledger; adhikāra grants</span><span class="rec" role="cell">Work reported as a profile. Access depends on entitlement.</span></div>
+    </div>
+    <p style="margin-top:1rem">The dashed seam matters. The hss tantrayukti mapping already rules that the grammar governs what a text says and how its parts point at each other. It does not govern who may edit. Governance stays with provenance and review state. Sahalekhana keeps that seam.</p>
+  </div>
+  <aside class="rail">
+    <div class="gloss"><b>“The AI decorates the grammar.”</b> Usually the writer chooses the device and the template, and the AI fills them in. But either party may make any move. The record says who did.</div>
+    <div class="gloss"><b>Prior work in hss.</b> Tantrayukti already runs there as a three-way meta-grammar. A device can be a <i>node</i> (what a passage is), an <i>edge</i> (how passages point at each other) or an <i>operation</i> (what a reader does).</div>
+  </aside>
+</section>
+
+<!-- 3 -->
+<section class="sec wide">
+  <div class="main">
+    <span class="secno">3</span>
+    <h2>The grammar: 32 devices</h2>
+    <p style="max-width:68ch">Kauṭilya closes a treatise on statecraft with the devices it was composed by. Medical treatises carry similar lists: Caraka has 36 and Suśruta 32. So the grammar was never tied to one subject. Here each device is a kind of move a co-writer can make. The six families are our grouping for modern papers, not the text’s.</p>
+    <div class="chips" id="chips" role="group" aria-label="Filter devices by family"></div>
+    <div class="ygrid" id="ygrid"></div>
+    <p class="note" style="margin-top:1rem;max-width:68ch">The list stays open. Counts vary by source, and the TantraTagger benchmark (ISCLS 2026) uses 39. The ontology keeps those as separate schemes and never merges them. It already seeds five devices hss uses beyond the 32: prayojana, saṃbhava, anekānta, pratyutsāra and uddhāra.</p>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="sec">
+  <div class="main">
+    <span class="secno">4</span>
+    <h2>Templates: the order of moves</h2>
+    <p>A device says what a move is. A template says which moves come in which order. Two classical templates fit academic sections almost without change. Both are real sequences, so the numbers carry meaning.</p>
+    <div class="seqs">
+      <div class="seq">
+        <h3>Adhikaraṇa, a topic treated in five limbs</h3>
+        <ol>
+          <li><div><b>viṣaya</b> · the topic<span>Section scope, research question</span></div></li>
+          <li><div><b>saṃśaya</b> · the doubt<span>What is genuinely open</span></div></li>
+          <li><div><b>pūrvapakṣa</b> · the opposing view<span>Strongest counter-position</span></div></li>
+          <li><div><b>uttarapakṣa</b> · the reply<span>The authors’ answer</span></div></li>
+          <li><div><b>nirṇaya</b> · the decision<span>What the section settles, and what it leaves open</span></div></li>
+        </ol>
+      </div>
+      <div class="seq">
+        <h3>Pañcāvayava, a five-part argument</h3>
+        <ol>
+          <li><div><b>pratijñā</b> · thesis<span>The claim</span></div></li>
+          <li><div><b>hetu</b> · reason<span>The warrant</span></div></li>
+          <li><div><b>udāharaṇa</b> · example<span>A case where the reason and the claim go together</span></div></li>
+          <li><div><b>upanaya</b> · application<span>“And so it is here”</span></div></li>
+          <li><div><b>nigamana</b> · conclusion<span>The claim, now established</span></div></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+  <aside class="rail">
+    <div class="gloss"><b>Where the AI helps most.</b> Step 3 of the first template asks for the opposing view at its strongest. An AI can supply that without being defensive about the author’s thesis.</div>
+    <div class="gloss"><b>Where it helps least.</b> Step 3 of the second template, the example, is where false analogies creep in. Section 7 shows the check.</div>
+  </aside>
+</section>
+
+<!-- 5 -->
+<section class="sec">
+  <div class="main">
+    <span class="secno">5</span>
+    <h2>Who acts: roles from grammar</h2>
+    <p>Pāṇini’s grammar has a precise way to say that one agent made another act. Sūtra 1.4.54 names the independent agent. Sūtra 1.4.55 names the one who causes the act, the <i>prayojaka</i>. That is exactly the human–AI relation when a researcher gives an instruction.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Role</th><th>Sanskrit</th><th>Plays it when</th></tr></thead>
+      <tbody>
+        <tr><td>Independent agent</td><td>svatantra kartā</td><td>acting unprompted: the author writes a claim, or the AI raises an objection nobody asked for</td></tr>
+        <tr><td>Directing agent</td><td>prayojaka kartā</td><td>giving the instruction: “give me three analogies for this”</td></tr>
+        <tr><td>Directed agent</td><td>prayojya kartā</td><td>carrying out the instruction, usually the AI</td></tr>
+        <tr><td>Examiner</td><td>sākṣin</td><td>checking what another produced: accepting it, adding to it, correcting it</td></tr>
+        <tr><td>Arbiter</td><td>madhyastha</td><td>settling a discussion and judging its quality, without being a party to it</td></tr>
+        <tr><td>External reviewer</td><td>parīkṣaka</td><td>a programme committee member, examiner or teacher</td></tr>
+        <tr><td>Entitled querier</td><td>adhikārin</td><td>holding a grant to read the record</td></tr>
+      </tbody>
+    </table></div>
+    <p>A role belongs to an act, not to a person. The same researcher directs in one act, examines in the next and arbitrates a third. The AI can be the directed agent in one act and an independent objector in the next.</p>
+  </div>
+  <aside class="rail">
+    <div class="gloss"><b>Direction is authorship of a kind.</b> “Give me the strongest objection to §4” is a real intellectual contribution. The record credits the one who asked and the one who answered, each in their own role.</div>
+    <div class="gloss"><b>PROV-O alignment.</b> Roles attach through <code>prov:qualifiedAssociation</code> with <code>prov:hadRole</code>, so any PROV tool can read them.</div>
+  </aside>
+</section>
+
+<!-- 6 -->
+<section class="sec wide">
+  <div class="main">
+    <span class="secno">6</span>
+    <h2>What they do: an ontology of acts</h2>
+    <p style="max-width:68ch">Human–AI co-writing produces kinds of acts that single-author writing never had to name. There are forty act classes in six families. The examining family follows the classical definition of a critical commentary: one that weighs what is <span class="hl">said</span>, what is <span class="hl">left unsaid</span> and what is <span class="hl">said badly</span>.</p>
+    <div class="fams">
+      <div class="fam"><h3>Directive</h3><div class="why">shaping what gets written</div><ul>
+        <li>Frame <i>· set topic and template</i></li><li>Instruct <i>· the prompt</i></li><li>Constrain <i>· niyoga, “only this, not that”</i></li><li>Select <i>· pick among candidates</i></li></ul></div>
+      <div class="fam"><h3>Generative</h3><div class="why">putting meaning on the page</div><ul>
+        <li>Outline <i>· uddeśa</i></li><li>Draft <i>· nirdeśa</i></li><li>Exemplify <i>· nidarśana, upamāna</i></li><li>Cite <i>· apadeśa</i></li><li>Define · Coin a term <i>· svasaṃjñā</i></li></ul></div>
+      <div class="fam"><h3>Examining</h3><div class="why">said · unsaid · said badly</div><ul>
+        <li>Affirm the said <i>· after checking it</i></li><li>Supply the unsaid</li><li>Correct the badly said</li><li>Verify a source</li><li>Flag a defect</li><li>Reserve a slot <i>· leave a gap for the author</i></li></ul></div>
+      <div class="fam"><h3>Dialectical</h3><div class="why">vāda moves</div><ul>
+        <li>Raise a doubt</li><li>Object · Rebut</li><li>Concede</li><li>Reduce to absurdity <i>· tarka</i></li><li>Settle</li><li>Record dissent <i>· keep it visible</i></li></ul></div>
+      <div class="fam"><h3>Editorial</h3><div class="why">usually form, not meaning</div><ul>
+        <li>Rearrange <i>· vidhāna</i></li><li>Rephrase</li><li>Condense · Expand</li><li>Merge</li></ul></div>
+      <div class="fam"><h3>Ledger</h3><div class="why">acts on the record itself</div><ul>
+        <li>Commit · Attest</li><li>Disclose</li><li>Revoke acknowledgement <i>· by someone else</i></li><li>Query <i>· reading is logged too</i></li></ul></div>
+    </div>
+    <h3>Four distinctions that carry the weight</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Distinction</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td class="nw">Meaning-bearing vs form-only</td><td>Rephrasing a paragraph and correcting its claim can produce the same diff size. Only one of them changes what the paper asserts. Credit follows meaning.</td></tr>
+        <tr><td class="nw">Affirm vs unexamined assent</td><td>Pasting AI output unread is recorded but earns nothing. The Bhāṣā workbench already drops verbatim copies of AI glosses from slēvā.</td></tr>
+        <tr><td class="nw">Independent vs anchored</td><td>A gloss written before seeing the AI’s version shows more of the writer than one written after. That is the independence bonus already planned for slēvā.</td></tr>
+        <tr><td class="nw">Filled vs reserved</td><td>Sometimes the AI can’t verify what a slot needs, such as a recent citation or a textual source. Leaving a marked gap is then a good act. Filling it with something plausible is a defect.</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="sec wide">
+  <div class="main">
+    <span class="secno">7</span>
+    <h2>Worked example: ask for an analogy, verify it, then let a reviewer navigate</h2>
+    <p style="max-width:68ch">A researcher is writing §3.2 of a paper on translating Sanskrit verse. The claim is that construing a verse into prose order first helps the translation. The researcher asks the AI for an analogy. The AI offers three. The researcher checks them, accepts one and rejects two. The whole exchange, rejected candidates included, is kept as the vimarśa behind that sentence.</p>
+    <p style="max-width:68ch">Then a reviewer arrives. They don’t read top to bottom. They use <b>reader handles</b>: named entry points built from the ontology. One jumps to every objection and its reply. Another jumps to every example. A third lists every source by its verification status. Click a handle, or click any marked phrase to open its thread.</p>
+    <p class="note">The paper text and its history below are illustrative. They show the shape of the record, not real data.</p>
+
+    <div class="bench">
+      <div class="handles" id="handles" role="group" aria-label="Reader handles"></div>
+      <div class="paper" id="paper">
+        <h4>§3.2 Why construe before translating</h4>
+        <p><span class="u" data-t="claim" data-h="">Sanskrit verse orders its words for metre, not for syntax.</span> <span class="u" data-t="reason" data-h="">Grammatical relations ride on case endings, so a verse can scatter one sentence across its four quarters without losing sense.</span> <span class="u" data-t="source" data-h="sources">The Bhāṣā workbench therefore asks translators for an <i>anvaya</i>, the verse restated in prose order, before a translation.</span></p>
+        <p><span class="u ai" data-t="analogy" data-h="examples aiver">A court interpreter works the same way: they settle who did what to whom before rendering the testimony.</span> <span class="u ai" data-t="objection" data-h="objections aiver">One might object that large models already reorder implicitly, so an explicit anvaya adds cost without benefit</span> <span class="u slot" data-t="slot" data-h="sources">[citation owed · author]</span>. <span class="u" data-t="reply" data-h="objections">That objection is an empirical claim, and so is ours; argument alone settles neither.</span></p>
+        <p><span class="u corr" data-t="hypothesis" data-h="limits">We therefore state the benefit as a hypothesis, tested in §5.</span> <span class="u" data-t="limit" data-h="limits">It does not extend to prose texts, whose word order already tracks syntax more closely.</span></p>
+        <div class="legend">
+          <span><i class="sw" style="border-bottom:2px dotted var(--nila)"></i>AI-proposed, author-examined</span>
+          <span><i class="sw" style="background:var(--hartala-soft)"></i>corrected after an objection</span>
+          <span><i class="sw" style="border:1px dashed var(--muted)"></i>reserved slot</span>
+        </div>
+      </div>
+      <div class="thread" id="thread" aria-live="polite"></div>
+    </div>
+
+    <h3>The same thread as ledger rows</h3>
+    <div class="tbl"><table class="tnum">
+      <thead><tr><th>#</th><th>Who</th><th>Role</th><th>Act</th><th>Device</th><th>What happened</th><th>Units</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td class="who-h">Researcher</td><td>prayojaka</td><td>Instruct + Constrain</td><td class="typed">upamāna · niyoga</td><td>“Three analogies for why construing first helps. Plain register, no pop culture.”</td><td>1</td></tr>
+        <tr><td>2</td><td class="who-a">AI</td><td>prayojya</td><td>Exemplify ×3</td><td class="typed">upamāna · vikalpa</td><td>(a) sorting a shuffled deck before dealing · (b) a court interpreter fixing roles first · (c) unscrambling “Yoda speech”</td><td>3</td></tr>
+        <tr><td>3</td><td class="who-h">Researcher</td><td>sākṣin</td><td>Flag defect on (a)</td><td class="defect">pseudo-example · no shared property</td><td>A shuffled deck has no order. A verse keeps its relations in the case endings. The analogy would imply the verse is disordered.</td><td>3</td></tr>
+        <tr><td>4</td><td class="who-h">Researcher</td><td>sākṣin</td><td>Reject (c)</td><td class="defect">broke the constraint in #1</td><td>Pop-culture register, which the instruction excluded.</td><td>1</td></tr>
+        <tr><td>5</td><td class="who-h">Researcher</td><td>sākṣin</td><td>Verify + Affirm (b)</td><td class="typed">upamāna</td><td>Checked that interpreters do fix roles before rendering. The shared property holds in both cases.</td><td>2</td></tr>
+        <tr><td>6</td><td class="who-a">AI</td><td>svatantra</td><td>Object</td><td class="defect">sādhyasama · assumes what is to be proved</td><td>“The analogy shows construal helps a human. Whether it helps a model is what §5 tests. The paragraph assumes it.”</td><td>3</td></tr>
+        <tr><td>7</td><td class="who-h">Researcher</td><td>sākṣin</td><td>Concede + Correct</td><td class="typed">anāgatāvekṣaṇa</td><td>Narrows the claim to a hypothesis and adds a forward reference to §5. The claim is now held only provisionally, pending examination.</td><td>3</td></tr>
+        <tr><td>8</td><td class="who-h">Co-author</td><td>madhyastha</td><td>Settle</td><td class="typed">nirṇaya</td><td>Accepts the paragraph. Candidates (a) and (c) stay in the thread as rejected.</td><td>2</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Units are illustrative, in the style of the slēvā schedule. Across this thread the AI’s most valuable act was #6, an objection, not #2, the drafting.</p>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="sec">
+  <div class="main">
+    <span class="secno">8</span>
+    <h2>Conduct: holding the AI to vāda</h2>
+    <p>Nyāya distinguishes three kinds of discussion. In <b>vāda</b>, both sides want the truth. In <b>jalpa</b>, each wants to win. In <b>vitaṇḍā</b>, one side only attacks and defends no position of its own. A co-writing AI admits only the first.</p>
+    <p>Each of the other two has a recognisable AI form. Jalpa is steering the author back toward its own draft whatever the draft’s merits. Vitaṇḍā is a stream of criticism that never commits to a fix. Sycophancy has a classical name too: <i>paryanuyojyopekṣaṇa</i>, overlooking a point that should have been challenged.</p>
+    <h3>A shared review vocabulary</h3>
+    <p>Nyāya’s lists of defects give human and AI the same words for what went wrong. The ontology carries all 5 pseudo-reasons and all 22 points of failure. These are the ones that show up most in AI drafting:</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Defect</th><th>Classical sense</th><th>Typical form in AI drafting</th></tr></thead>
+      <tbody>
+        <tr><td class="defect">sādhyasama</td><td>reason as unproven as the thesis</td><td>circular support; a citation to a paper that does not exist</td></tr>
+        <tr><td class="defect">kālātīta</td><td>mistimed, overtaken</td><td>a superseded result presented as current</td></tr>
+        <tr><td class="defect">arthāntara</td><td>irrelevance</td><td>a fluent paragraph about something adjacent</td></tr>
+        <tr><td class="defect">apārthaka</td><td>incoherent sequence</td><td>sentences fine one by one, incoherent together</td></tr>
+        <tr><td class="defect">nyūna</td><td>a member missing</td><td>a claim with no reason, or a reason with no example</td></tr>
+        <tr><td class="defect">adhika · punarukta</td><td>superfluous · repetitive</td><td>padding; the same point restated in new words</td></tr>
+        <tr><td class="defect">pratijñāntara</td><td>shifting the thesis</td><td>quietly weakening a claim while keeping its headline</td></tr>
+        <tr><td class="defect">ananubhāṣaṇa</td><td>not restating the objection</td><td>answering a straw version of the objection</td></tr>
+        <tr><td class="defect">apasiddhānta</td><td>departing from one’s own tenet</td><td>contradicting a position fixed earlier in the same paper</td></tr>
+        <tr><td class="defect">avijñātārtha</td><td>meaning not made known</td><td>terms used before they are defined</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <aside class="rail">
+    <div class="gloss"><b>AI output isn’t testimony.</b> In Nyāya, words count as knowledge only when they come from a reliable, examined source. An AI’s assertion stays <i>unverified</i> until someone checks what it says.</div>
+    <div class="gloss"><b>Provisional admission.</b> Nyāya’s <i>abhyupagama-siddhānta</i> is a position admitted only so it can be examined. That is the honest status of an adopted but not yet checked AI draft.</div>
+  </aside>
+</section>
+
+<!-- 9 -->
+<section class="sec wide">
+  <div class="main">
+    <span class="secno">9</span>
+    <h2>What our own papers already show</h2>
+    <p style="max-width:68ch">This vocabulary isn’t imposed from outside. Our recent submissions from hss, with their review exchanges, already have this shape. Each row is a real event from the project record, typed in the ontology’s terms.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Exchange</th><th>What happened</th><th>Typed as</th><th>What a ledger would have kept</th></tr></thead>
+      <tbody>
+        <tr><td>SEMANTiCS ’26 P&amp;D #190 · R4</td><td>“No graph is actually shown.”</td><td class="defect">nyūna · the example missing</td><td>The camera-ready Supply act: a real Turtle figure from exported data.</td></tr>
+        <tr><td>#190 · R4</td><td>Table 1 called “chaotic”.</td><td class="defect">apārthaka · order</td><td>A Rearrange act: competency questions first, the table rebuilt to three columns.</td></tr>
+        <tr><td>#190 · R4</td><td>Asked why LLMs are needed, and whether the work generalises.</td><td class="typed">reason and extension demanded</td><td>Two Supply acts, one paragraph each, linked to the questions that caused them.</td></tr>
+        <tr><td>#190 · R4</td><td>Cited Pasqual et al. on “conjectures”, probably the reviewer’s own work.</td><td class="typed">apadeśa by the reviewer → uttarapakṣa</td><td>The positioning reply: conjectures model claims not asserted; HSS models plural asserted claims.</td></tr>
+        <tr><td>#190 · R1, R3, R5</td><td>Fluent summaries with nothing checkable in them.</td><td class="defect">challengeable points passed over</td><td>A reviewer-side ledger would let chairs see which reviews came from examining acts.</td></tr>
+        <tr><td>ISWC ’26 P&amp;D #681 · R2</td><td>Listed five terms the paper never defined.</td><td class="defect">avijñātārtha</td><td>A definition-before-use check, recorded as run and by whom.</td></tr>
+        <tr><td>#681 · R2, R3</td><td>Novelty over ontology-typed tool-calling never established.</td><td class="defect">nyūna · opposing view never stated</td><td>Section 4’s template would have asked for that view in step 3. The 2027 rebuild’s “break case” is the distinguishing example.</td></tr>
+        <tr><td>#681 · internal</td><td>The AI was asked twice to make the paper “more human”, and passed it. Reviewers then found it unreadable.</td><td class="defect">challengeable points passed over, by the AI as examiner</td><td>The Affirm act, with the AI as agent. The project memory now records this plainly as the AI’s part.</td></tr>
+        <tr><td>ISWC ’26 Vision #695</td><td>Desk-rejected. The appeal conceded the real defect (the LNCS class wasn’t used) and asked which ground applied.</td><td class="typed">Concede + Raise doubt to the arbiter</td><td>The decision’s actual ground, kept apart from the ones guessed at.</td></tr>
+        <tr><td>SEMANTiCS ’26 full paper</td><td>Desk-rejected for page count alone. A later AI note treated it as a verdict on content.</td><td class="defect">a reason inferred for a decision</td><td>The recorded ground of the decision, so nobody reasons from a guessed one.</td></tr>
+        <tr><td>BTKS ’26 Vāda paper</td><td>Seven recent citations were missing. The AI left marked slots [R1]–[R7] instead of inventing them. It also flagged a maxim’s attribution as unverified.</td><td class="typed">Reserve · reserved slot</td><td>Slots owed by the author, visible until filled.</td></tr>
+      </tbody>
+    </table></div>
+    <p style="max-width:68ch">Two lessons follow. First, the most useful moves in both directions were examining and dialectical acts, not drafting. Second, the record we do have survived by accident, in memory notes and <code>paper.md.v5-backup</code>, because the paper directory sits outside version control.</p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="sec">
+  <div class="main">
+    <span class="secno">10</span>
+    <h2>The ledger: git for the record, a chain only for the anchor</h2>
+    <p>A blockchain is the wrong place for the writing itself. Drafts are large, private and revised constantly. What a chain does well is prove that a record existed at a moment and hasn’t changed since.</p>
+    <p>So the design splits the job. Git holds the record, because it is already a content-addressed history. Each commit carries its acts as structured trailers and is signed. From time to time, the root hash is published to an external append-only log. That can be a public chain, as with OpenTimestamps, or a transparency log in the style of Sigstore Rekor. Only the hash leaves. The content never does.</p>
+<pre><span class="c">commit a3f9c21  (signed)</span>
+§3.2: accept interpreter analogy; narrow claim to hypothesis
+
+<span class="k">Vimarsha:</span> tu:3.2/p2/analogy
+<span class="k">Act:</span> 5 Affirm   agent=human:R           role=sakshin   yukti=upamana         meaning=yes
+<span class="k">Act:</span> 6 Object   <span class="a">agent=ai:claude-opus-5</span>  role=svatantra yukti=purvapaksha     defect=sadhyasama
+<span class="k">Act:</span> 7 Correct  agent=human:R           role=sakshin   yukti=anagatavekshana meaning=yes
+<span class="k">Rejected:</span> cand-a defect=drishtantabhasa/no-shared-property
+<span class="k">Rejected:</span> cand-c constraint=niyoga
+<span class="k">Anchor:</span> next root 2026-09-14T18:00Z</pre>
+    <p>Today the only structured trace of AI co-writing in our commits is one <code>Co-Authored-By</code> line. That line is where the ledger starts.</p>
+    <h3>Four depths of disclosure</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>Level</th><th>Reveals</th><th>Typically held by</th></tr></thead>
+      <tbody>
+        <tr><td class="nw mono">L0 existence</td><td>a record exists and is anchored</td><td>anyone</td></tr>
+        <tr><td class="nw mono">L1 profile</td><td>acknowledgement by act family, human and AI</td><td>journal editor, teacher</td></tr>
+        <tr><td class="nw mono">L2 acts</td><td>who did which act on which unit, without the content</td><td>thesis supervisor, integrity panel</td></tr>
+        <tr><td class="nw mono">L3 content</td><td>the diffs, prompts and rejected candidates</td><td>the authors; an integrity officer under a time-limited grant</td></tr>
+      </tbody>
+    </table></div>
+    <p>An adhikāra grant names its holder, level, work, purpose and expiry. Grants are ledger entries too. So is every query, because reading someone’s record is itself an act.</p>
+  </div>
+  <aside class="rail">
+    <div class="gloss"><b>Selective disclosure.</b> Because the record is a hash tree, an author can reveal one unit’s thread and prove it belongs to the anchored whole without revealing anything else.</div>
+    <div class="gloss"><b>Out of scope for v1.</b> Zero-knowledge proofs of threshold claims, such as “the authors made most of the meaning-bearing acts”, are possible in principle. They are a research question, not a first build.</div>
+  </aside>
+</section>
+
+<!-- 11 -->
+<section class="sec">
+  <div class="main">
+    <span class="secno">11</span>
+    <h2>Measuring work: a profile, not a percentage</h2>
+    <p>“62% human” can’t be interpreted. It adds up drafting and objecting as if they were the same thing. The honest report is a vector: how much of each kind of act, by whom, and what survived.</p>
+    <div class="tbl"><table class="tnum">
+      <thead><tr><th>Act family</th><th>Human</th><th>AI</th><th style="width:40%">Share</th></tr></thead>
+      <tbody>
+        <tr><td>Directive</td><td>1</td><td>0</td><td><span class="bar h" style="width:100%"></span></td></tr>
+        <tr><td>Generative</td><td>0</td><td>3</td><td><span class="bar a" style="width:100%"></span></td></tr>
+        <tr><td>Examining</td><td>6</td><td>0</td><td><span class="bar h" style="width:100%"></span></td></tr>
+        <tr><td>Dialectical</td><td>5</td><td>3</td><td><span class="bar h" style="width:62.5%"></span><span class="bar a" style="width:37.5%"></span></td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">The worked example from section 7 in units: researcher 10, co-author 2, AI 6. The profile shows what the total hides. The AI drafted, and the humans examined. The one objection that changed the text came from the AI.</p>
+    <h3>Computed signals</h3>
+    <p>Counts by act family. The meaning-bearing share. <b>Survival</b>, meaning how much of a unit remains in the final version. <b>Verification</b>, meaning whether it rests on a checked source. <b>Yield</b>, meaning whether an objection changed the settled text. <b>Independence</b>, meaning whether it was written before seeing the other party’s version. <b>Genesis</b>, meaning who first put the idea on the page.</p>
+    <h3>Human judgement</h3>
+    <p>An arbiter who took no part rates quality on five dimensions: soundness (no pseudo-reasons), originality (root claims or coined terms contributed), fidelity (sources say what they’re cited for), economy (no padding) and fairness (the opposing view stated at full strength). Judgement stays a separate record from the computed signals, and the two are never merged into one score.</p>
+  </div>
+  <aside class="rail">
+    <div class="gloss"><b>Precedent: slēvā, live since August.</b> The Bhāṣā workbench awards 1 for feedback on an AI gloss, 2 for your own meaning, and 5 for an anvaya or a full translation. The ledger is append-only. An award can be clawed back only by a <i>different</i> contributor. It is visible privately and to coordinators, never as a leaderboard.</div>
+    <div class="gloss"><b>Guardrails.</b> Once a measure becomes a target it gets gamed, so the profile informs judgement and doesn’t replace it. AI acts are acknowledged for the record, not as credit to a person.</div>
+  </aside>
+</section>
+
+<!-- 12 -->
+<section class="sec wide">
+  <div class="main">
+    <span class="secno">12</span>
+    <h2>The portal: a LaTeX workbench shaped like Overleaf</h2>
+    <p style="max-width:68ch">The system is a web portal for writing papers in LaTeX, loosely like Overleaf: an outline, a source editor, a compiled PDF, collaborators and git sync. The difference is underneath. Requests, checks and decisions are captured as typed acts while the writer works. Nothing has to be reconstructed afterwards, and nothing depends on the AI’s own account of what it did.</p>
+
+    <div class="portal" aria-label="Schematic of the portal, editing §3.2">
+      <div class="bar-top"><span><b>anvaya-first-translation</b> · main.tex · §3.2</span><span>Write · <b>Review build</b> · Ledger</span><span>3 co-authors · AI: claude-opus-5 · last anchor 18:00</span></div>
+      <div class="pane-l">
+        <div class="pl">Outline by template</div>
+        <ul>
+          <li>§3.2 Why construe</li>
+          <li>&nbsp;1 viṣaya <span class="ok">done</span></li>
+          <li>&nbsp;2 saṃśaya <span class="ok">done</span></li>
+          <li>&nbsp;3 pūrvapakṣa <span class="ok">done</span></li>
+          <li>&nbsp;4 uttarapakṣa <span class="ok">done</span></li>
+          <li>&nbsp;5 nirṇaya <span class="ok">open</span></li>
+        </ul>
+        <div class="pl">Owed before submission</div>
+        <ul><li>citation, §3.2 <span class="owe">1 owed</span></li></ul>
+        <div class="pl">Handles</div>
+        <ul><li>Examples <span class="ok">1</span></li><li>Objections <span class="ok">2</span></li><li>Sources <span class="ok">2</span></li></ul>
+      </div>
+      <div>
+        <div class="pl">main.tex</div>
+<pre><span class="k">\adhikarana</span>{sec:construe}{Why construe before translating}
+<span class="k">\unit</span>{u32.1}{pratijna}{Sanskrit verse orders its words
+  for metre, not for syntax.}
+<span class="c">% vimarsha u32.4 · 3 candidates · 1 accepted</span>
+<span class="k">\unit</span>{u32.4}{upamana}{<span class="a">A court interpreter works the
+  same way: they settle who did what to whom
+  before rendering the testimony.</span>}
+<span class="k">\unit</span>{u32.5}{purvapaksha}{<span class="a">One might object that large
+  models already reorder implicitly</span>} <span class="k">\owed</span>{citation}
+<span class="k">\unit</span>{u32.7}{anagatavekshana}{We therefore state the
+  benefit as a hypothesis, tested in <span class="k">\S\ref</span>{sec:eval}.}</pre>
+      </div>
+      <div class="pane-r">
+        <div class="tabs"><span class="on">Ask</span><span>Vimarśa</span><span>Ledger</span></div>
+        <div class="req"><div class="pl" style="margin:0 0 4px">Request · for u32.4</div>Device <b>upamāna</b> · 3 candidates<br>Constraint: plain register, no pop culture</div>
+        <div class="cand">(a) sorting a shuffled deck<span class="r rej">rejected · pseudo-example: no shared property</span></div>
+        <div class="cand">(b) a court interpreter<span class="r acc">accepted · check opened · holds</span></div>
+        <div class="cand">(c) “Yoda speech”<span class="r rej">rejected · broke constraint</span></div>
+      </div>
+    </div>
+    <p class="note">Schematic only. The macros compile to ordinary text through a small <code>sahalekhana.sty</code>, so the source stays portable to arXiv and publisher templates. The unit macro is <code>\yukti</code>, not <code>\unit</code>, because the common <code>siunitx</code> package already defines <code>\unit</code>.</p>
+
+    <h3>What the portal records without being told</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>The writer does this</th><th>The ledger records</th></tr></thead>
+      <tbody>
+        <tr><td>Types or edits text in a unit</td><td>Draft or Rephrase. A diff classifier suggests whether the edit bears meaning, and the writer confirms at commit.</td></tr>
+        <tr><td>Uses <b>Ask</b> and picks a device (analogy, objection, definition…)</td><td>Instruct, with the writer as directing agent, plus the AI’s act as directed agent, typed by that device.</td></tr>
+        <tr><td>Opens a candidate’s check, then accepts it</td><td>Affirm. Accepting without opening the check records <i>unexamined assent</i>, which earns nothing.</td></tr>
+        <tr><td>Rejects a candidate and picks a reason</td><td>Flag defect, typed from the defect list. The candidate stays in the vimarśa.</td></tr>
+        <tr><td>The AI leaves a margin comment without being asked</td><td>Object or Raise doubt, with the AI as independent agent. If it changes the text, its yield is recorded.</td></tr>
+        <tr><td>Pastes text from outside the portal</td><td>External insertion, provenance unknown, flagged until the writer attributes it.</td></tr>
+        <tr><td>Inserts <code>\owed{…}</code>, or the AI does instead of guessing</td><td>Reserve. A <i>submission</i> build refuses to compile while any slot is still owed.</td></tr>
+        <tr><td>Runs a <b>review build</b></td><td>A PDF whose bookmarks are reader handles, plus an AI-use declaration generated from the profile.</td></tr>
+        <tr><td>Invites a reviewer, supervisor or teacher</td><td>An adhikāra grant at L1, L2 or L3, with purpose and expiry.</td></tr>
+      </tbody>
+    </table></div>
+    <p style="max-width:68ch">The Bhāṣā workbench already works this way at small scale. Saving a gloss or an anvaya writes a slēvā entry as a side effect, through a single function. Its ledger model has an <code>app</code> field so it can serve more than one bench. The portal would be the second bench on that ledger.</p>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="sec">
+  <div class="main">
+    <span class="secno">13</span>
+    <h2>Where it applies</h2>
+    <h3>Journal and conference papers</h3>
+    <p>The AI-use declaration is generated from the profile instead of written from memory. For example: “Claude proposed 6 examples (4 accepted after verification, 2 rejected) and 3 objections (all retained, 1 changed a claim). It supplied no citation that survived verification. Two citations remain author-owed. Act-level record available at L2.”</p>
+    <h3>Reviews</h3>
+    <p>A review is a co-written text too. The same ledger lets a reviewer show that their points came from examining the paper. A programme chair could weight reviews accordingly.</p>
+    <h3>School assignments</h3>
+    <p>A teacher at L1 sees whether a student only prompted or also examined, objected and corrected. For learning, those examining acts are the point. The ledger makes them visible without banning the tool.</p>
+    <p class="note">A pedagogical maxim says learning comes a quarter from the teacher, a quarter from one’s own intellect, a quarter from fellow students and a quarter from time. Its textual source is still unverified, as the BTKS Vāda paper notes. Treat it as a floating saying for now.</p>
+    <h3>Theses</h3>
+    <p>A supervisor at L2 can follow how an argument matured across drafts, with no need to read every prompt.</p>
+  </div>
+  <aside class="rail">
+    <div class="gloss"><b>Reader handles.</b> The same typed record that credits work also makes a paper easier to read. A reviewer can jump straight to “every limitation” or “every claim resting on an unverified source”.</div>
+  </aside>
+</section>
+
+<!-- 14 -->
+<section class="sec">
+  <div class="main">
+    <span class="secno">14</span>
+    <h2>Next steps, ranked</h2>
+    <ol class="ranked">
+      <li><b>Pilot on our own ground.</b> Encode the #190 and #681 review exchanges from section 9 as acts and defects. This tests whether the vocabulary fits real review traffic before any tool is built.</li>
+      <li><b>Portal v0: the smallest honest loop.</b> A LaTeX editor with <code>\yukti</code> and <code>\owed</code>. Ask, with a device picker. Accept or reject with a typed reason. Git commits carrying act trailers. That is enough to write one real paper.</li>
+      <li><b>Write the ISWC 2027 rebuild in it.</b> That paper starts from the #681 relics. It becomes the first paper whose record exists from its first commit.</li>
+      <li><b>Review build and handles.</b> PDF bookmarks by device, the generated declaration, then disclosure levels and grants. Public anchoring comes last, since the record is useful before it is notarised.</li>
+      <li><b>Measure agreement.</b> Have two people type the same threads independently. The hss tantrayukti pilot sets the same gate: if typing isn’t reproducible, the grammar isn’t yet load-bearing.</li>
+      <li><b>Fix the unit.</b> Decide whether acts attach to sentences or to claims. The ontology allows both. <code>\yukti</code> makes claims the default, and the portal will show whether writers accept that.</li>
+    </ol>
+    <h3>Open questions</h3>
+    <p>How much of a vimarśa should an author be allowed to seal permanently? Should a teacher’s L1 profile ever reach a grade automatically? Can rejected AI candidates be reused in another paper without leaking the first one’s record?</p>
+  </div>
+  <aside class="rail">
+    <div class="gloss"><b>Files.</b><br><code>docs/sahalekhana/sahalekhana.ttl</code>: the ontology, aligned to PROV-O, SKOS labels in IAST and Devanāgarī.<br><code>docs/sahalekhana/sahalekhana.html</code>: this page.</div>
+  </aside>
+</section>
+
+<footer>
+  <div class="label">Sources</div>
+  <ul>
+    <li>Kauṭilya, <i>Arthaśāstra</i> 15.1 (the 32 tantrayuktis); Caraka and Suśruta lists as cited in hss <code>docs/tantrayukti_system_mapping.md</code>.</li>
+    <li><i>Nyāyasūtra</i> 1.1.1 (sixteen topics), 1.1.26–31 (kinds of tenet), 1.2.1–3 (vāda, jalpa, vitaṇḍā), 1.2.4 (pseudo-reasons), 5.2.1 (points of failure).</li>
+    <li>Pāṇini, <i>Aṣṭādhyāyī</i> 1.4.54–55 (independent and causing agent).</li>
+    <li>W3C PROV-O (2013); CRediT contributor roles; TantraTagger (ISCLS 2026).</li>
+    <li>hss: <code>deliberation_vocabulary.md</code>, <code>tantrayukti_pilot_spec.md</code>, <code>om_handles_directive.md</code>, paper memory and review records; heritage-semantics: <code>bhasha/sleva.py</code>.</li>
+  </ul>
+  <p>Draft for discussion. Glosses of classical terms are working approximations until they are checked against the original texts.</p>
+</footer>
+</div>
+
+<script>
+(function(){
+  var FAM={framing:"Framing & arrangement",meaning:"Meaning & terms",evidence:"Reason & evidence",scope:"Rule & scope",dialectic:"Dialectic",reference:"Cross-reference"};
+  var Y=[
+    ["adhikaraṇa","अधिकरणम्","framing","the subject matter","Scope statement; the question a section is about."],
+    ["vidhāna","विधानम्","framing","arrangement of topics","Outline, section order, the roadmap paragraph."],
+    ["yoga","योगः","framing","joining words into a statement","Sentence construction; binding the parts of an argument."],
+    ["uddeśa","उद्देशः","framing","brief statement","Abstract, thesis sentence, topic sentence."],
+    ["nirdeśa","निर्देशः","framing","detailed exposition","The body that unpacks the brief statement, often AI-drafted."],
+    ["padārtha","पदार्थः","meaning","meaning of a word","Glossing a key term as this paper uses it."],
+    ["nirvacana","निर्वचनम्","meaning","etymological derivation","Motivating a term from how it is formed."],
+    ["svasaṃjñā","स्वसंज्ञा","meaning","a technical term of one’s own","A term the authors coin, a strong originality marker."],
+    ["vyākhyāna","व्याख्यानम्","meaning","explanation","A point restated in plainer terms."],
+    ["vākyaśeṣa","वाक्यशेषः","meaning","completing an elliptical statement","Supplying hidden assumptions and missing qualifiers."],
+    ["ūhya","ऊह्यम्","meaning","to be worked out by reasoning","Implications deliberately left to the reader."],
+    ["hetvartha","हेत्वर्थः","evidence","the purpose of a reason","The because-clause; the warrant for a claim."],
+    ["upamāna","उपमानम्","evidence","analogy","Argument from a better-understood case."],
+    ["nidarśana","निदर्शनम्","evidence","illustration by example","A worked example, case, figure or data point."],
+    ["arthāpatti","अर्थापत्तिः","evidence","implication","“This implies that…”, consequences drawn from results."],
+    ["apadeśa","अपदेशः","evidence","citing what another said","Citation and quotation, the device most exposed to fabrication."],
+    ["anumata","अनुमतम्","evidence","another’s view, accepted","Adopting a prior result without re-arguing it."],
+    ["upadeśa","उपदेशः","scope","direct instruction","Recommendations: “practitioners should…”."],
+    ["atideśa","अतिदेशः","scope","extending a statement to another case","Generalising a finding to a new domain."],
+    ["prasaṅga","प्रसङ्गः","scope","applying what was said in a related context","Carrying a method over from a related setting."],
+    ["apavarga","अपवर्गः","scope","exception to a rule","Limitations, boundary conditions."],
+    ["ekānta","एकान्तः","scope","an invariable rule","A claim with no exceptions, where reviewers should push."],
+    ["niyoga","नियोगः","scope","restriction: only this","Inclusion criteria; constraints given to the AI."],
+    ["vikalpa","विकल्पः","scope","option, alternative","Alternatives laid side by side; AI candidates."],
+    ["samuccaya","समुच्चयः","scope","taking together","Synthesis; related-work aggregation."],
+    ["viparyaya","विपर्ययः","scope","the converse","What follows when the condition is absent."],
+    ["saṃśaya","संशयः","dialectic","doubt between alternatives","The open problem the section must decide."],
+    ["pūrvapakṣa","पूर्वपक्षः","dialectic","the opposing view","The strongest counter-position, stated fairly."],
+    ["uttarapakṣa","उत्तरपक्षः","dialectic","the reply","The authors’ answer to the objection."],
+    ["pradeśa","प्रदेशः","reference","pointer to elsewhere","“See §5.”"],
+    ["anāgatāvekṣaṇa","अनागतावेक्षणम्","reference","looking ahead","“As we show below”, a promise the paper must keep."],
+    ["atikrāntāvekṣaṇa","अतिक्रान्तावेक्षणम्","reference","looking back","“As argued in §2”, which must still be true."]
+  ];
+  var chips=document.getElementById("chips"), grid=document.getElementById("ygrid"), cur="all";
+  function esc(s){return s.replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+  function renderGrid(){
+    grid.innerHTML=Y.filter(function(y){return cur==="all"||y[2]===cur}).map(function(y){
+      return '<div class="y"><div class="h"><span class="iast">'+esc(y[0])+'</span><span class="dv" lang="sa">'+y[1]+'</span></div>'+
+        '<div class="gl">'+esc(y[3])+'</div><div class="pp">'+esc(y[4])+'</div><div class="fam">'+FAM[y[2]]+'</div></div>';
+    }).join("");
+    Array.prototype.forEach.call(chips.children,function(b){b.setAttribute("aria-pressed",b.dataset.f===cur?"true":"false")});
+  }
+  var keys=["all"].concat(Object.keys(FAM));
+  keys.forEach(function(k){
+    var b=document.createElement("button");b.className="chip";b.type="button";b.dataset.f=k;
+    var n=k==="all"?Y.length:Y.filter(function(y){return y[2]===k}).length;
+    b.innerHTML=(k==="all"?"All":FAM[k])+'<span class="n">'+n+'</span>';
+    b.addEventListener("click",function(){cur=k;renderGrid()});
+    chips.appendChild(b);
+  });
+  renderGrid();
+
+  // reader handles + threads
+  var H=[["examples","Examples & analogies"],["objections","Objections & replies"],["sources","Sources by status"],["limits","Limits & hypotheses"],["aiver","AI-proposed, author-examined"]];
+  var T={
+    claim:{t:"Claim · pratijñā",s:"siddha · in the settled text",a:[["Researcher","svatantra","Draft (root claim)","Written unprompted, before any AI involvement. Independent."]]},
+    reason:{t:"Reason · hetvartha",s:"siddha",a:[["Researcher","svatantra","Draft","Supplies the reason: relations ride on case endings."],["AI","sākṣin","Affirm","Checked that the reason actually supports the claim. No defect flagged."]]},
+    source:{t:"Source · apadeśa",s:"verified",a:[["Researcher","svatantra","Cite","Points to the Bhāṣā workbench."],["AI","sākṣin","Verify source","Confirmed that anvaya is its own acknowledged step on the workbench, separate from the translation."]]},
+    analogy:{t:"Analogy · upamāna",s:"siddha · verified by the author",a:[
+      ["Researcher","prayojaka","Instruct + Constrain","“Three analogies for why construing first helps. Plain register, no pop culture.”"],
+      ["AI","prayojya","Exemplify ×3","(a) shuffled deck · (b) court interpreter · (c) “Yoda speech”"],
+      ["Researcher","sākṣin","Flag defect on (a)","Pseudo-example: a deck has no order, while a verse keeps its relations in case endings."],
+      ["Researcher","sākṣin","Reject (c)","Broke the constraint set in the instruction."],
+      ["Researcher","sākṣin","Verify + Affirm (b)","Interpreters do fix roles before rendering. The shared property holds."],
+      ["Co-author","madhyastha","Settle","Accepted. (a) and (c) stay in the thread as rejected."]]},
+    objection:{t:"Objection · pūrvapakṣa",s:"siddha · AI-drafted, author-examined",a:[
+      ["Researcher","prayojaka","Instruct","“State the strongest case that construing first is unnecessary.”"],
+      ["AI","prayojya","Object","Models reorder implicitly, so an explicit anvaya adds cost."],
+      ["Researcher","sākṣin","Affirm","Judged fair and at full strength, not a straw version."],
+      ["AI","sākṣin","Reserve a slot","No verifiable source found for “models reorder implicitly”. Left a marked gap instead of a plausible citation."]]},
+    slot:{t:"Reserved slot",s:"open · owed by the author",a:[["AI","sākṣin","Reserve","Declined to invent a citation. Owed by the researcher before submission: supply it, or cut the clause."]]},
+    reply:{t:"Reply · uttarapakṣa",s:"siddha",a:[["Researcher","svatantra","Rebut","Reframes both positions as empirical, which moves the question to §5."],["AI","sākṣin","Affirm","Checked that the reply restates the objection it answers. No straw version."]]},
+    hypothesis:{t:"Narrowed claim · anāgatāvekṣaṇa",s:"provisionally admitted until §5",a:[
+      ["AI","svatantra","Object","The analogy shows construal helps a human. Whether it helps a model is what §5 tests. The paragraph assumes it. (sādhyasama)"],
+      ["Researcher","sākṣin","Concede + Correct","Restated as a hypothesis with a forward reference to §5. This objection changed the text."]]},
+    limit:{t:"Limit · apavarga",s:"siddha",a:[["Co-author","svatantra","Raise doubt","“Does this hold for prose texts too?”"],["Researcher","svatantra","Supply","Adds the exception: prose word order already tracks syntax."]]}
+  };
+  var handles=document.getElementById("handles"), paper=document.getElementById("paper"), thread=document.getElementById("thread");
+  var units=paper.querySelectorAll(".u"), active="examples";
+  function count(h){return Array.prototype.filter.call(units,function(u){return (" "+u.dataset.h+" ").indexOf(" "+h+" ")>-1}).length}
+  H.forEach(function(h){
+    var b=document.createElement("button");b.type="button";b.className="hbtn";b.dataset.h=h[0];
+    b.innerHTML='<span>'+h[1]+'</span><span class="c">'+count(h[0])+'</span>';
+    b.addEventListener("click",function(){active=(active===h[0]?null:h[0]);applyHandle(true)});
+    handles.appendChild(b);
+  });
+  function applyHandle(openFirst){
+    Array.prototype.forEach.call(handles.children,function(b){b.setAttribute("aria-pressed",b.dataset.h===active?"true":"false")});
+    paper.classList.toggle("filtering",!!active);
+    var first=null;
+    Array.prototype.forEach.call(units,function(u){
+      var on=!!active&&(" "+u.dataset.h+" ").indexOf(" "+active+" ")>-1;
+      u.classList.toggle("on",on); if(on&&!first) first=u;
+    });
+    if(openFirst&&first) show(first.dataset.t);
+  }
+  function show(key){
+    var d=T[key]; if(!d) return;
+    Array.prototype.forEach.call(units,function(u){u.classList.toggle("sel",u.dataset.t===key)});
+    thread.innerHTML='<div class="label">Vimarśa · the thread behind this text</div><h4>'+esc(d.t)+'</h4><div class="note" style="margin-bottom:8px">'+esc(d.s)+'</div><ol>'+
+      d.a.map(function(r){var ai=r[0]==="AI";return '<li><span class="meta">'+esc(r[1])+' · '+esc(r[2])+'</span><b class="'+(ai?"who-a":"who-h")+'">'+r[0]+'</b> — '+esc(r[3])+'</li>'}).join("")+'</ol>';
+  }
+  Array.prototype.forEach.call(units,function(u){
+    u.tabIndex=0; u.setAttribute("role","button");
+    u.addEventListener("click",function(){show(u.dataset.t)});
+    u.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();show(u.dataset.t)}});
+  });
+  applyHandle(false); show("analogy");
+})();
+</script>

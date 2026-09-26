@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.sqlite3
+.env
+.DS_Store
+lekhana_repos/

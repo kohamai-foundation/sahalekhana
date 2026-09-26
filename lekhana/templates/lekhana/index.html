@@ -1,0 +1,26 @@
+{% extends "lekhana/base.html" %}
+{% block title %}Papers · Sahalekhana{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1>Your papers</h1>
+  <p class="muted">Each paper is a git repository. Every edit, request to the AI, review point and decision is committed with the acts that made it.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Paper</th><th>Your role</th><th>Started</th></tr></thead>
+    <tbody>
+    {% for p, role in projects %}
+      <tr><td><a href="{% url 'lekhana:project' p.slug %}">{{ p.title }}</a></td><td>{{ role }}</td><td>{{ p.created_at|date:"j M Y" }}</td></tr>
+    {% empty %}
+      <tr><td colspan="3" class="muted">No papers yet. Start one below, or ask an author to add you as a reviewer.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+
+  <h2 class="pl">Start a paper</h2>
+  <form method="post" class="stack" style="max-width:28rem">
+    {% csrf_token %}
+    <label>Title <input name="title" required></label>
+    <label>Short name <input name="slug" placeholder="made from the title if left blank"></label>
+    <div><button class="btn primary">Create paper</button></div>
+  </form>
+</section>
+{% endblock %}

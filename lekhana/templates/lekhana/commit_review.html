@@ -1,0 +1,30 @@
+{% extends "lekhana/base.html" %}
+{% block title %}Review changes · {{ project.title }} · Sahalekhana{% endblock %}
+{% block content %}
+<section class="narrow">
+  <h1>Review changes</h1>
+  <p>Tick each change that alters what the paper asserts. Leave form-only edits (wording, punctuation, order) unticked. The portal pre-ticks its guess; what you choose is what gets recorded.</p>
+  <form method="post" action="{% url 'lekhana:save' project.slug %}">
+    {% csrf_token %}
+    <input type="hidden" name="step" value="commit">
+    <input type="hidden" name="base_sha" value="{{ base_sha }}">
+    <textarea name="content" hidden>{{ content }}</textarea>
+    <ul class="changes">
+      {% for ch in changes %}
+        <li>
+          <label><input type="checkbox" name="meaning" value="{{ ch.key }}"{% if ch.suggested_meaning %} checked{% endif %}>
+            <b>{% if ch.unit_id %}<code>{{ ch.unit_id }}</code>{% else %}Text outside units{% endif %}</b>
+            <span class="muted">· {{ ch.status }}</span> · changes what it says</label>
+          <div class="diff">{% if ch.old %}<del>{{ ch.old|truncatechars:700 }}</del>{% endif %}{% if ch.new %}<ins>{{ ch.new|truncatechars:700 }}</ins>{% endif %}</div>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if new_owed %}<p>New owed slots, recorded as reserved: {% for o in new_owed %}<code>{{ o }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+    <div class="stack" style="max-width:36rem"><label>Commit message <input name="message" placeholder="optional; a summary is written if blank"></label></div>
+    <div class="row">
+      <button class="btn primary">Commit</button>
+      <span class="muted">To keep editing, go back in your browser. Your edits are still in the editor.</span>
+    </div>
+  </form>
+</section>
+{% endblock %}

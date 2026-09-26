@@ -1,0 +1,664 @@
+@prefix shl:  <https://heritagesemantics.org/ontology/sahalekhana#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Sahalekhana (सहलेखन) — an ontology of human–AI co-writing.
+#
+# Five strata, each drawing on an indigenous discipline:
+#   1. GRAMMAR     tantrayukti — the 32 devices a treatise is built from
+#                  (Arthaśāstra 15.1). Every text unit and every act is typed
+#                  by the yukti it enacts: contributions are MOVES, not diffs.
+#   2. TEMPLATES   adhikaraṇa (viṣaya→saṃśaya→pūrvapakṣa→uttarapakṣa→nirṇaya)
+#                  and pañcāvayava (pratijñā→hetu→udāharaṇa→upanaya→nigamana).
+#   3. ROLES       Pāṇinian kāraka: svatantra kartā (1.4.54), prayojaka / hetu
+#                  (1.4.55) — the human who directs the AI is the causative agent.
+#   4. VĀDA        Nyāya conduct: vāda not jalpa/vitaṇḍā; hetvābhāsa (NS 1.2.4)
+#                  and nigrahasthāna (NS 5.2.1) as the shared review vocabulary.
+#   5. LEDGER      every act a prov:Activity, committed, signed, anchored;
+#                  acknowledged as a VECTOR (slēvā), disclosed under adhikāra.
+#
+# Aligned to W3C PROV-O. In the hss meta-grammar a Yukti is an OPERATION,
+# a TextUnit a NODE, a DialecticalRelation an EDGE (see hss FacetAxis.layer).
+# Status: concept draft v0.1, 2026-09-14.
+# ═════════════════════════════════════════════════════════════════════════════
+
+<https://heritagesemantics.org/ontology/sahalekhana>
+    a owl:Ontology ;
+    rdfs:label "Sahalekhana — human–AI co-writing ontology"@en ;
+    dct:created "2026-09-14"^^xsd:date ;
+    owl:versionInfo "0.1-draft" ;
+    owl:imports <http://www.w3.org/ns/prov-o> ;
+    rdfs:comment "Records who did what, of what kind, in a co-written text: acts typed by tantrayukti, conducted as vāda, attributed by kāraka role, ledgered with PROV-O, acknowledged as a profile, and disclosed only under adhikāra (entitlement)."@en .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 0. Agents and roles (kāraka)
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:Agent a owl:Class ; rdfs:subClassOf prov:Agent ;
+    rdfs:label "Agent"@en ;
+    rdfs:comment "Anything that performs an act on the work."@en .
+
+shl:HumanAgent a owl:Class ; rdfs:subClassOf shl:Agent, prov:Person ;
+    rdfs:label "Human agent"@en .
+
+shl:AIAgent a owl:Class ; rdfs:subClassOf shl:Agent, prov:SoftwareAgent ;
+    rdfs:label "AI agent"@en ;
+    rdfs:comment "A model at a specific version and configuration. Two versions of the same model are distinct agents for the record."@en .
+
+shl:modelIdentifier a owl:DatatypeProperty ; rdfs:domain shl:AIAgent ; rdfs:range xsd:string ;
+    rdfs:label "model identifier"@en .
+
+shl:Role a owl:Class ; rdfs:subClassOf prov:Role ;
+    rdfs:label "Role (kāraka)"@en ;
+    rdfs:comment "The grammatical role an agent plays in one act. Roles attach to acts via prov:qualifiedAssociation, never to agents permanently."@en .
+
+shl:SvatantraKarta a shl:Role ;
+    rdfs:label "svatantra kartā"@sa-Latn, "स्वतन्त्रः कर्ता"@sa-Deva, "independent agent"@en ;
+    rdfs:comment "Aṣṭādhyāyī 1.4.54 svatantraḥ kartā — acts on own initiative, unbidden."@en .
+
+shl:PrayojakaKarta a shl:Role ;
+    rdfs:label "prayojaka (hetu) kartā"@sa-Latn, "प्रयोजकः कर्ता"@sa-Deva, "directing agent"@en ;
+    rdfs:comment "Aṣṭādhyāyī 1.4.55 tatprayojako hetuś ca — the one who causes another to act. The human who instructs the AI. Direction is authorship of a kind, recorded as such."@en .
+
+shl:PrayojyaKarta a shl:Role ;
+    rdfs:label "prayojya kartā"@sa-Latn, "प्रयोज्यः कर्ता"@sa-Deva, "directed agent"@en ;
+    rdfs:comment "The agent made to act — typically the AI executing an instruction. Also a human acting on a supervisor's direction."@en .
+
+shl:Sakshin a shl:Role ;
+    rdfs:label "sākṣin"@sa-Latn, "साक्षी"@sa-Deva, "examiner / witness"@en ;
+    rdfs:comment "Examines what another produced (vārttika work): affirms, supplies, corrects."@en .
+
+shl:Madhyastha a shl:Role ;
+    rdfs:label "madhyastha"@sa-Latn, "मध्यस्थः"@sa-Deva, "arbiter"@en ;
+    rdfs:comment "Settles a vāda (nirṇaya) and judges quality. Should not be a party to the moves being judged."@en .
+
+shl:Adhikarin a shl:Role ;
+    rdfs:label "adhikārin"@sa-Latn, "अधिकारी"@sa-Deva, "entitled querier"@en ;
+    rdfs:comment "Holds an adhikāra (grant) to query the record at a given disclosure level for a stated purpose."@en .
+
+shl:Parikshaka a shl:Role ;
+    rdfs:label "parīkṣaka"@sa-Latn, "परीक्षकः"@sa-Deva, "external reviewer"@en ;
+    rdfs:comment "A reviewer outside the writing team (conference PC, examiner, teacher). Their review is itself a co-written text and can carry its own ledger."@en .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 1. The work and its units (NODE layer)
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:Tantra a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "tantra (work)"@en ;
+    rdfs:comment "The whole composition: paper, article, assignment, thesis chapter."@en .
+
+shl:Version a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "version"@en ;
+    rdfs:comment "A committed state of the tantra (a git commit / ledger block)."@en .
+
+shl:TextUnit a owl:Class ; rdfs:subClassOf prov:Entity ;
+    rdfs:label "text unit"@en ;
+    rdfs:comment "Any addressable span that can be attributed: section, paragraph, sentence, claim, citation, term. Identity survives rephrasing; a revision is a new unit linked by shl:revises."@en .
+
+shl:Adhikarana a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "adhikaraṇa (section)"@sa-Latn, "अधिकरणम्"@sa-Deva ; rdfs:comment "A topical section that follows a process template."@en .
+
+shl:Claim a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "claim (pratijñā)"@en .
+shl:Reason a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "reason (hetu)"@en .
+shl:Example a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "example (udāharaṇa / dṛṣṭānta)"@en .
+shl:Citation a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "citation (apadeśa)"@en ;
+    rdfs:comment "An appeal to a source. Carries an EvidenceStatus; an AI-supplied citation is Unverified until examined."@en .
+shl:Definition a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "definition (lakṣaṇa)"@en .
+shl:TechnicalTerm a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "technical term (svasaṃjñā)"@en .
+shl:Objection a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "objection (pūrvapakṣa)"@en .
+shl:Reply a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "reply (uttarapakṣa)"@en .
+shl:Conclusion a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "conclusion (nigamana / nirṇaya)"@en .
+shl:OpenQuestion a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "open question (saṃśaya)"@en .
+shl:RecordedDissent a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "recorded dissent (matabheda)"@en ;
+    rdfs:comment "An objection not overcome, kept visible in the work rather than silently dropped."@en .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. Grammar: the tantrayuktis (OPERATION layer)
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:Yukti a owl:Class ;
+    rdfs:label "yukti (compositional device)"@en, "तन्त्रयुक्तिः"@sa-Deva ;
+    rdfs:comment "One of the devices by which a treatise is composed and read. The individuals below follow the 32 of Arthaśāstra 15.1; other traditions (Āyurvedic commentaries, the Tamil utti) are modelled as alternative skos:ConceptSchemes, never collapsed into this one."@en .
+
+shl:YuktiFamily a owl:Class ;
+    rdfs:label "yukti family"@en ;
+    rdfs:comment "A working grouping of yuktis by what they do in a modern paper. The grouping is ours, not the text's."@en .
+
+shl:inFamily a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain shl:Yukti ; rdfs:range shl:YuktiFamily .
+
+shl:inPaper a owl:AnnotationProperty ;
+    rdfs:label "in a paper"@en ;
+    rdfs:comment "What the device looks like in academic writing."@en .
+
+shl:ArthashastraYuktis a skos:ConceptScheme ;
+    rdfs:label "Tantrayukti — Arthaśāstra 15.1 (32)"@en .
+
+shl:FamFraming   a shl:YuktiFamily ; rdfs:label "Framing & arrangement"@en .
+shl:FamMeaning   a shl:YuktiFamily ; rdfs:label "Meaning & terms"@en .
+shl:FamEvidence  a shl:YuktiFamily ; rdfs:label "Reason & evidence"@en .
+shl:FamScope     a shl:YuktiFamily ; rdfs:label "Rule & scope"@en .
+shl:FamDialectic a shl:YuktiFamily ; rdfs:label "Dialectic"@en .
+shl:FamReference a shl:YuktiFamily ; rdfs:label "Cross-reference"@en .
+
+# — Framing & arrangement
+shl:adhikarana a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamFraming ;
+    rdfs:label "adhikaraṇa"@sa-Latn, "अधिकरणम्"@sa-Deva ; skos:definition "the subject matter"@en ;
+    shl:inPaper "Scope statement; the research question a section is about."@en .
+shl:vidhana a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamFraming ;
+    rdfs:label "vidhāna"@sa-Latn, "विधानम्"@sa-Deva ; skos:definition "the arrangement of topics"@en ;
+    shl:inPaper "Outline, section order, the roadmap paragraph."@en .
+shl:yoga a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamFraming ;
+    rdfs:label "yoga"@sa-Latn, "योगः"@sa-Deva ; skos:definition "the joining of words into a statement"@en ;
+    shl:inPaper "Sentence construction; how parts of an argument are syntactically bound."@en .
+shl:uddesha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamFraming ;
+    rdfs:label "uddeśa"@sa-Latn, "उद्देशः"@sa-Deva ; skos:definition "brief statement / naming"@en ;
+    shl:inPaper "Abstract, thesis sentence, topic sentence, bullet outline."@en .
+shl:nirdesha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamFraming ;
+    rdfs:label "nirdeśa"@sa-Latn, "निर्देशः"@sa-Deva ; skos:definition "detailed exposition"@en ;
+    shl:inPaper "The body that unpacks an uddeśa — typically where the AI drafts."@en .
+
+# — Meaning & terms
+shl:padartha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamMeaning ;
+    rdfs:label "padārtha"@sa-Latn, "पदार्थः"@sa-Deva ; skos:definition "the meaning of a word"@en ;
+    shl:inPaper "Glossing a key term as used in this paper."@en .
+shl:nirvacana a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamMeaning ;
+    rdfs:label "nirvacana"@sa-Latn, "निर्वचनम्"@sa-Deva ; skos:definition "etymological derivation"@en ;
+    shl:inPaper "Deriving a term's sense from its formation; motivating a coinage."@en .
+shl:svasamjna a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamMeaning ;
+    rdfs:label "svasaṃjñā"@sa-Latn, "स्वसंज्ञा"@sa-Deva ; skos:definition "a technical term of one's own"@en ;
+    shl:inPaper "A term coined by the authors — a strong originality marker."@en .
+shl:vyakhyana a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamMeaning ;
+    rdfs:label "vyākhyāna"@sa-Latn, "व्याख्यानम्"@sa-Deva ; skos:definition "explanation, elaboration"@en ;
+    shl:inPaper "Explaining a point in plainer terms; a worked explanation."@en .
+shl:vakyashesha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamMeaning ;
+    rdfs:label "vākyaśeṣa"@sa-Latn, "वाक्यशेषः"@sa-Deva ; skos:definition "completing an elliptical statement"@en ;
+    shl:inPaper "Supplying what a sentence leaves implicit — assumptions, missing qualifiers."@en .
+shl:uhya a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamMeaning ;
+    rdfs:label "ūhya"@sa-Latn, "ऊह्यम्"@sa-Deva ; skos:definition "what is to be worked out by reasoning"@en ;
+    shl:inPaper "Left to the reader to infer; implications the paper deliberately does not spell out."@en .
+
+# — Reason & evidence
+shl:hetvartha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamEvidence ;
+    rdfs:label "hetvartha"@sa-Latn, "हेत्वर्थः"@sa-Deva ; skos:definition "the purpose of a reason"@en ;
+    shl:inPaper "The because-clause; the warrant for a claim."@en .
+shl:upamana a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamEvidence ;
+    rdfs:label "upamāna"@sa-Latn, "उपमानम्"@sa-Deva ; skos:definition "analogy"@en ;
+    shl:inPaper "Argument by analogy to a better-understood case."@en .
+shl:nidarshana a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamEvidence ;
+    rdfs:label "nidarśana"@sa-Latn, "निदर्शनम्"@sa-Deva ; skos:definition "illustration by example"@en ;
+    shl:inPaper "A worked example, case, figure or data point."@en .
+shl:arthapatti a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamEvidence ;
+    rdfs:label "arthāpatti"@sa-Latn, "अर्थापत्तिः"@sa-Deva ; skos:definition "implication, what follows though unsaid"@en ;
+    shl:inPaper "Consequences drawn from results; 'this implies that…'."@en .
+shl:apadesha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamEvidence ;
+    rdfs:label "apadeśa"@sa-Latn, "अपदेशः"@sa-Deva ; skos:definition "citing what another has said"@en ;
+    shl:inPaper "Citation, quotation, appeal to prior work. The device most at risk from AI fabrication."@en .
+shl:anumata a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamEvidence ;
+    rdfs:label "anumata"@sa-Latn, "अनुमतम्"@sa-Deva ; skos:definition "another's view, not contradicted, hence accepted"@en ;
+    shl:inPaper "Adopting a prior result without re-arguing it; also the act of accepting a co-writer's text."@en .
+
+# — Rule & scope
+shl:upadesha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamScope ;
+    rdfs:label "upadeśa"@sa-Latn, "उपदेशः"@sa-Deva ; skos:definition "direct instruction"@en ;
+    shl:inPaper "Recommendations, guidelines, 'practitioners should…'."@en .
+shl:atidesha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamScope ;
+    rdfs:label "atideśa"@sa-Latn, "अतिदेशः"@sa-Deva ; skos:definition "extending a statement to another case"@en ;
+    shl:inPaper "Generalising a finding to a new domain; 'the same holds for…'."@en .
+shl:prasanga a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamScope ;
+    rdfs:label "prasaṅga"@sa-Latn, "प्रसङ्गः"@sa-Deva ; skos:definition "applying what was said in a related context"@en ;
+    shl:inPaper "Carrying over a method or result from a related setting."@en .
+shl:apavarga a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamScope ;
+    rdfs:label "apavarga"@sa-Latn, "अपवर्गः"@sa-Deva ; skos:definition "exception to a rule"@en ;
+    shl:inPaper "Limitations, boundary conditions, counterexamples admitted."@en .
+shl:ekanta a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamScope ;
+    rdfs:label "ekānta"@sa-Latn, "एकान्तः"@sa-Deva ; skos:definition "an invariable rule"@en ;
+    shl:inPaper "A claim stated without exception — a place reviewers should press."@en .
+shl:niyoga a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamScope ;
+    rdfs:label "niyoga"@sa-Latn, "नियोगः"@sa-Deva ; skos:definition "restriction: only this, not otherwise"@en ;
+    shl:inPaper "Scoping and inclusion criteria; constraints given to the AI."@en .
+shl:vikalpa a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamScope ;
+    rdfs:label "vikalpa"@sa-Latn, "विकल्पः"@sa-Deva ; skos:definition "option, alternative"@en ;
+    shl:inPaper "Alternative designs or readings laid side by side."@en .
+shl:samuccaya a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamScope ;
+    rdfs:label "samuccaya"@sa-Latn, "समुच्चयः"@sa-Deva ; skos:definition "combination, taking together"@en ;
+    shl:inPaper "Synthesis; combining findings; related-work aggregation."@en .
+shl:viparyaya a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamScope ;
+    rdfs:label "viparyaya"@sa-Latn, "विपर्ययः"@sa-Deva ; skos:definition "the converse, by reversal"@en ;
+    shl:inPaper "Stating what follows when the condition is absent; the negative case."@en .
+
+# — Dialectic
+shl:samshaya a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamDialectic ;
+    rdfs:label "saṃśaya"@sa-Latn, "संशयः"@sa-Deva ; skos:definition "doubt between alternatives"@en ;
+    shl:inPaper "The open problem; the question the section must decide."@en .
+shl:purvapaksha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamDialectic ;
+    rdfs:label "pūrvapakṣa"@sa-Latn, "पूर्वपक्षः"@sa-Deva ; skos:definition "the prima facie / opposing view"@en ;
+    shl:inPaper "The strongest counter-position, stated fairly — a natural AI task."@en .
+shl:uttarapaksha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamDialectic ;
+    rdfs:label "uttarapakṣa"@sa-Latn, "उत्तरपक्षः"@sa-Deva ; skos:definition "the reply, the established view"@en ;
+    shl:inPaper "The authors' answer to the objection."@en .
+
+# — Cross-reference
+shl:pradesha a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamReference ;
+    rdfs:label "pradeśa"@sa-Latn, "प्रदेशः"@sa-Deva ; skos:definition "reference to what is stated elsewhere"@en ;
+    shl:inPaper "'See §5' — pointer to a later statement."@en .
+shl:anagatavekshana a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamReference ;
+    rdfs:label "anāgatāvekṣaṇa"@sa-Latn, "अनागतावेक्षणम्"@sa-Deva ; skos:definition "looking ahead"@en ;
+    shl:inPaper "'as we show below'; forward promises the paper must keep."@en .
+shl:atikrantavekshana a shl:Yukti, skos:Concept ; skos:inScheme shl:ArthashastraYuktis ; shl:inFamily shl:FamReference ;
+    rdfs:label "atikrāntāvekṣaṇa"@sa-Latn, "अतिक्रान्तावेक्षणम्"@sa-Deva ; skos:definition "looking back"@en ;
+    shl:inPaper "'as argued in §2'; backward references that must still be true."@en .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Process templates
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:ProcessTemplate a owl:Class ; rdfs:label "process template"@en ;
+    rdfs:comment "An ordered sequence of steps a section follows. The human usually chooses the template; either party may fill steps."@en .
+shl:Step a owl:Class ; rdfs:label "step"@en .
+shl:hasStep a owl:ObjectProperty ; rdfs:domain shl:ProcessTemplate ; rdfs:range shl:Step .
+shl:stepIndex a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:domain shl:Step ; rdfs:range xsd:positiveInteger .
+shl:realisedBy a owl:ObjectProperty ; rdfs:domain shl:Step ; rdfs:range shl:Yukti .
+shl:followsTemplate a owl:ObjectProperty ; rdfs:domain shl:Adhikarana ; rdfs:range shl:ProcessTemplate .
+shl:fillsStep a owl:ObjectProperty ; rdfs:domain shl:TextUnit ; rdfs:range shl:Step .
+
+shl:AdhikaranaTemplate a shl:ProcessTemplate ;
+    rdfs:label "adhikaraṇa (Mīmāṃsā five limbs)"@en ;
+    shl:hasStep shl:step_vishaya, shl:step_samshaya, shl:step_purvapaksha, shl:step_uttara, shl:step_nirnaya .
+shl:step_vishaya     a shl:Step ; shl:stepIndex 1 ; rdfs:label "viṣaya — the topic"@en ;          shl:realisedBy shl:adhikarana .
+shl:step_samshaya    a shl:Step ; shl:stepIndex 2 ; rdfs:label "saṃśaya — the doubt"@en ;         shl:realisedBy shl:samshaya .
+shl:step_purvapaksha a shl:Step ; shl:stepIndex 3 ; rdfs:label "pūrvapakṣa — the objection"@en ;  shl:realisedBy shl:purvapaksha .
+shl:step_uttara      a shl:Step ; shl:stepIndex 4 ; rdfs:label "uttarapakṣa — the reply"@en ;     shl:realisedBy shl:uttarapaksha .
+shl:step_nirnaya     a shl:Step ; shl:stepIndex 5 ; rdfs:label "nirṇaya — the decision"@en ;      shl:realisedBy shl:samuccaya .
+
+shl:PancavayavaTemplate a shl:ProcessTemplate ;
+    rdfs:label "pañcāvayava (Nyāya five-membered argument)"@en ;
+    shl:hasStep shl:step_pratijna, shl:step_hetu, shl:step_udaharana, shl:step_upanaya, shl:step_nigamana .
+shl:step_pratijna  a shl:Step ; shl:stepIndex 1 ; rdfs:label "pratijñā — thesis"@en ;       shl:realisedBy shl:uddesha .
+shl:step_hetu      a shl:Step ; shl:stepIndex 2 ; rdfs:label "hetu — reason"@en ;           shl:realisedBy shl:hetvartha .
+shl:step_udaharana a shl:Step ; shl:stepIndex 3 ; rdfs:label "udāharaṇa — example"@en ;     shl:realisedBy shl:nidarshana .
+shl:step_upanaya   a shl:Step ; shl:stepIndex 4 ; rdfs:label "upanaya — application"@en ;  shl:realisedBy shl:atidesha .
+shl:step_nigamana  a shl:Step ; shl:stepIndex 5 ; rdfs:label "nigamana — conclusion"@en ;   shl:realisedBy shl:arthapatti .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. Acts (kriyā) — what humans and AI do to the work
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:Act a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "act (kriyā)"@en ;
+    rdfs:comment "One attributable operation on the work. Every act has exactly one performer (via prov:qualifiedAssociation with a shl:Role), employs one or more yuktis, and is recorded in a commit."@en .
+
+shl:performedBy a owl:ObjectProperty ; rdfs:subPropertyOf prov:wasAssociatedWith ; rdfs:domain shl:Act ; rdfs:range shl:Agent .
+shl:directedBy a owl:ObjectProperty ; rdfs:subPropertyOf prov:wasAssociatedWith ; rdfs:domain shl:Act ; rdfs:range shl:Agent ;
+    rdfs:comment "The prayojaka of this act, when it was instructed."@en .
+shl:inRole a owl:ObjectProperty ; rdfs:domain shl:Act ; rdfs:range shl:Role ;
+    rdfs:comment "Shorthand for the performer's prov:hadRole in this act."@en .
+shl:employsYukti a owl:ObjectProperty ; rdfs:domain [ owl:unionOf ( shl:Act shl:TextUnit ) ] ; rdfs:range shl:Yukti .
+shl:actsOn a owl:ObjectProperty ; rdfs:subPropertyOf prov:used ; rdfs:domain shl:Act ; rdfs:range shl:TextUnit .
+shl:produces a owl:ObjectProperty ; owl:inverseOf prov:wasGeneratedBy ; rdfs:domain shl:Act ; rdfs:range shl:TextUnit .
+shl:revises a owl:ObjectProperty ; rdfs:subPropertyOf prov:wasRevisionOf ; rdfs:domain shl:TextUnit ; rdfs:range shl:TextUnit .
+shl:instruction a owl:DatatypeProperty ; rdfs:domain shl:Act ; rdfs:range xsd:string ;
+    rdfs:comment "The prompt or direction given, retained verbatim (content-level disclosure only)."@en .
+
+shl:meaningBearing a owl:DatatypeProperty, owl:FunctionalProperty ; rdfs:domain shl:Act ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if the act changes what the text asserts; false for form-only acts (rephrase, reformat). The single most important distinction for credit."@en .
+
+shl:Anchoring a owl:Class ; rdfs:label "anchoring"@en ;
+    rdfs:comment "Whether the act was produced having seen another agent's output on the same unit (from the slēvā independence bonus on the Bhāṣā workbench)."@en .
+shl:Independent a shl:Anchoring ; rdfs:label "independent (blind-first)"@en .
+shl:Anchored    a shl:Anchoring ; rdfs:label "anchored (after seeing AI/peer output)"@en .
+shl:hasAnchoring a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:domain shl:Act ; rdfs:range shl:Anchoring .
+
+# 4.1 Directive acts (prayojana) — shaping what gets written
+shl:DirectiveAct a owl:Class ; rdfs:subClassOf shl:Act ; rdfs:label "directive act"@en .
+shl:Frame      a owl:Class ; rdfs:subClassOf shl:DirectiveAct ; rdfs:label "frame (set adhikaraṇa & template)"@en .
+shl:Instruct   a owl:Class ; rdfs:subClassOf shl:DirectiveAct ; rdfs:label "instruct (prompt)"@en .
+shl:Constrain  a owl:Class ; rdfs:subClassOf shl:DirectiveAct ; rdfs:label "constrain (niyoga)"@en .
+shl:Select     a owl:Class ; rdfs:subClassOf shl:DirectiveAct ; rdfs:label "select among options (vikalpa)"@en .
+
+# 4.2 Generative acts (sṛṣṭi) — putting meaning on the page
+shl:GenerativeAct a owl:Class ; rdfs:subClassOf shl:Act ; rdfs:label "generative act"@en .
+shl:Outline    a owl:Class ; rdfs:subClassOf shl:GenerativeAct ; rdfs:label "outline (uddeśa)"@en .
+shl:Draft      a owl:Class ; rdfs:subClassOf shl:GenerativeAct ; rdfs:label "draft (nirdeśa)"@en .
+shl:Exemplify  a owl:Class ; rdfs:subClassOf shl:GenerativeAct ; rdfs:label "exemplify (nidarśana)"@en .
+shl:Cite       a owl:Class ; rdfs:subClassOf shl:GenerativeAct ; rdfs:label "cite (apadeśa)"@en .
+shl:Define     a owl:Class ; rdfs:subClassOf shl:GenerativeAct ; rdfs:label "define (lakṣaṇa / padārtha)"@en .
+shl:Coin       a owl:Class ; rdfs:subClassOf shl:GenerativeAct ; rdfs:label "coin a term (svasaṃjñā)"@en .
+
+# 4.3 Examining acts (vārttika) — ukta · anukta · durukta
+shl:ExaminingAct a owl:Class ; rdfs:subClassOf shl:Act ;
+    rdfs:label "examining act (vārttika)"@en ;
+    rdfs:comment "After the definition of a vārttika: reflection on what is said (ukta), unsaid (anukta) and ill-said (durukta)."@en .
+shl:Affirm      a owl:Class ; rdfs:subClassOf shl:ExaminingAct ; rdfs:label "affirm the said (ukta · anumata)"@en ;
+    rdfs:comment "Accept after examination. Acceptance without examination is not this act; see shl:UnexaminedAssent."@en .
+shl:Supply      a owl:Class ; rdfs:subClassOf shl:ExaminingAct ; rdfs:label "supply the unsaid (anukta-pūraṇa)"@en .
+shl:Correct     a owl:Class ; rdfs:subClassOf shl:ExaminingAct ; rdfs:label "correct the ill-said (durukta-śodhana)"@en .
+shl:VerifySource a owl:Class ; rdfs:subClassOf shl:ExaminingAct ; rdfs:label "verify a source (pramāṇa-parīkṣā)"@en .
+shl:FlagDefect  a owl:Class ; rdfs:subClassOf shl:ExaminingAct ; rdfs:label "flag a defect"@en .
+
+# 4.4 Dialectical acts (vāda moves)
+shl:DialecticalAct a owl:Class ; rdfs:subClassOf shl:Act ; rdfs:label "dialectical act (vāda move)"@en .
+shl:RaiseDoubt  a owl:Class ; rdfs:subClassOf shl:DialecticalAct ; rdfs:label "raise a doubt (saṃśaya)"@en .
+shl:Object      a owl:Class ; rdfs:subClassOf shl:DialecticalAct ; rdfs:label "object (pūrvapakṣa)"@en .
+shl:Rebut       a owl:Class ; rdfs:subClassOf shl:DialecticalAct ; rdfs:label "rebut (uttarapakṣa)"@en .
+shl:Concede     a owl:Class ; rdfs:subClassOf shl:DialecticalAct ; rdfs:label "concede (abhyupagama)"@en .
+shl:Reductio    a owl:Class ; rdfs:subClassOf shl:DialecticalAct ; rdfs:label "reduce to absurdity (tarka)"@en .
+shl:Settle      a owl:Class ; rdfs:subClassOf shl:DialecticalAct ; rdfs:label "settle (nirṇaya)"@en .
+shl:RecordDissent a owl:Class ; rdfs:subClassOf shl:DialecticalAct ; rdfs:label "record dissent (matabheda)"@en .
+
+# 4.5 Editorial acts (saṃskāra) — typically not meaning-bearing
+shl:EditorialAct a owl:Class ; rdfs:subClassOf shl:Act ; rdfs:label "editorial act (saṃskāra)"@en .
+shl:Rearrange  a owl:Class ; rdfs:subClassOf shl:EditorialAct ; rdfs:label "rearrange (vidhāna)"@en .
+shl:Rephrase   a owl:Class ; rdfs:subClassOf shl:EditorialAct ; rdfs:label "rephrase (form only)"@en .
+shl:Condense   a owl:Class ; rdfs:subClassOf shl:EditorialAct ; rdfs:label "condense"@en .
+shl:Expand     a owl:Class ; rdfs:subClassOf shl:EditorialAct ; rdfs:label "expand (vyākhyāna)"@en .
+shl:Merge      a owl:Class ; rdfs:subClassOf shl:EditorialAct ; rdfs:label "merge (samuccaya)"@en .
+
+# 4.6 Ledger acts (sākṣya) — acts on the record itself
+shl:LedgerAct a owl:Class ; rdfs:subClassOf shl:Act ; rdfs:label "ledger act (sākṣya)"@en .
+shl:CommitAct  a owl:Class ; rdfs:subClassOf shl:LedgerAct ; rdfs:label "commit"@en .
+shl:Attest     a owl:Class ; rdfs:subClassOf shl:LedgerAct ; rdfs:label "attest (sign a version)"@en .
+shl:Disclose   a owl:Class ; rdfs:subClassOf shl:LedgerAct ; rdfs:label "disclose"@en .
+shl:Revoke     a owl:Class ; rdfs:subClassOf shl:LedgerAct ; rdfs:label "revoke acknowledgement (clawback)"@en ;
+    rdfs:comment "An appended negative entry reversing an earlier acknowledgement; must be raised by an agent other than the original performer. The original entry is never edited."@en .
+shl:Query      a owl:Class ; rdfs:subClassOf shl:LedgerAct ; rdfs:label "query under adhikāra"@en ;
+    rdfs:comment "Reading the record is itself an act and is itself recorded."@en .
+
+shl:UnexaminedAssent a owl:Class ; rdfs:subClassOf shl:Act ;
+    rdfs:label "unexamined assent"@en ;
+    rdfs:comment "Accepting a co-writer's text with no evidence of examination (e.g. a verbatim paste of AI output). Recorded, never acknowledged — the analogue of the verbatim-AI-gloss drop on the Bhāṣā bench."@en .
+[] a owl:AllDisjointClasses ; owl:members ( shl:Affirm shl:UnexaminedAssent ) .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Vāda — dialogue modes, evidence, defects (EDGE layer)
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:DialogueMode a owl:Class ; rdfs:label "dialogue mode (kathā)"@en .
+shl:Vada     a shl:DialogueMode ; rdfs:label "vāda"@sa-Latn, "वादः"@sa-Deva ;
+    rdfs:comment "Nyāyasūtra 1.2.1 — discussion aimed at truth, both parties sharing the goal. The only mode the co-writing protocol admits for the AI."@en .
+shl:Jalpa    a shl:DialogueMode ; rdfs:label "jalpa"@sa-Latn, "जल्पः"@sa-Deva ;
+    rdfs:comment "NS 1.2.2 — disputation aimed at victory. In an AI: persuading the author toward its own draft regardless of merit."@en .
+shl:Vitanda  a shl:DialogueMode ; rdfs:label "vitaṇḍā"@sa-Latn, "वितण्डा"@sa-Deva ;
+    rdfs:comment "NS 1.2.3 — only attacking, with no position of one's own. In an AI: endless criticism that never commits to a fix."@en .
+shl:inMode a owl:ObjectProperty ; rdfs:domain shl:DialecticalAct ; rdfs:range shl:DialogueMode .
+
+shl:respondsTo a owl:ObjectProperty ; rdfs:domain shl:DialecticalAct ; rdfs:range shl:Act .
+shl:objectsTo  a owl:ObjectProperty ; rdfs:subPropertyOf shl:respondsTo ; rdfs:domain shl:Object .
+shl:rebuts     a owl:ObjectProperty ; rdfs:subPropertyOf shl:respondsTo ; rdfs:domain shl:Rebut .
+shl:concedes   a owl:ObjectProperty ; rdfs:subPropertyOf shl:respondsTo ; rdfs:domain shl:Concede .
+shl:settles    a owl:ObjectProperty ; rdfs:domain shl:Settle ; rdfs:range shl:TextUnit .
+shl:changedOutcome a owl:DatatypeProperty ; rdfs:domain shl:DialecticalAct ; rdfs:range xsd:boolean ;
+    rdfs:comment "True if this move altered what the settled text asserts — the dialectical yield of an objection."@en .
+
+# Evidence (pramāṇa)
+shl:Pramana a owl:Class ; rdfs:label "pramāṇa (means of knowing)"@en .
+shl:pratyaksha a shl:Pramana ; rdfs:label "pratyakṣa — observation, data"@en .
+shl:anumana    a shl:Pramana ; rdfs:label "anumāna — inference"@en .
+shl:upamanaP   a shl:Pramana ; rdfs:label "upamāna — comparison"@en .
+shl:shabda     a shl:Pramana ; rdfs:label "śabda — reliable testimony"@en ;
+    rdfs:comment "AI output is not śabda by default: it is not āpta-vacana (the word of a reliable, examined source) until what it asserts is verified."@en .
+shl:restsOn a owl:ObjectProperty ; rdfs:domain shl:Claim ; rdfs:range shl:Pramana .
+
+shl:EvidenceStatus a owl:Class ; rdfs:label "evidence status"@en .
+shl:Unverified a shl:EvidenceStatus ; rdfs:label "unverified"@en .
+shl:Verified   a shl:EvidenceStatus ; rdfs:label "verified"@en .
+shl:Fabricated a shl:EvidenceStatus ; rdfs:label "fabricated (source does not exist)"@en .
+shl:Misattributed a shl:EvidenceStatus ; rdfs:label "misattributed (source exists, does not say this)"@en .
+shl:hasEvidenceStatus a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:domain shl:TextUnit ; rdfs:range shl:EvidenceStatus .
+
+# Defects: hetvābhāsa (NS 1.2.4) and nigrahasthāna (NS 5.2.1)
+shl:Defect a owl:Class ; rdfs:label "defect"@en .
+shl:flagsDefect a owl:ObjectProperty ; rdfs:domain shl:Act ; rdfs:range shl:Defect .
+shl:inAIDrafting a owl:AnnotationProperty ; rdfs:label "typical form in AI drafting"@en .
+
+shl:Hetvabhasa a owl:Class ; rdfs:subClassOf shl:Defect ; rdfs:label "hetvābhāsa (pseudo-reason)"@en .
+shl:savyabhicara a shl:Hetvabhasa ; rdfs:label "savyabhicāra — inconclusive"@en ;
+    shl:inAIDrafting "A reason that holds equally for the opposite conclusion."@en .
+shl:viruddha a shl:Hetvabhasa ; rdfs:label "viruddha — contradictory"@en ;
+    shl:inAIDrafting "Evidence cited that actually supports the negation."@en .
+shl:prakaranasama a shl:Hetvabhasa ; rdfs:label "prakaraṇasama — counterbalanced"@en ;
+    shl:inAIDrafting "Leaves the question exactly as open as before."@en .
+shl:sadhyasama a shl:Hetvabhasa ; rdfs:label "sādhyasama — unproven, as needy of proof as the thesis"@en ;
+    shl:inAIDrafting "Circular support; also a citation that does not exist (asiddha)."@en .
+shl:kalatita a shl:Hetvabhasa ; rdfs:label "kālātīta — mistimed / sublated"@en ;
+    shl:inAIDrafting "Superseded or outdated result presented as current."@en .
+
+shl:Nigrahasthana a owl:Class ; rdfs:subClassOf shl:Defect ; rdfs:label "nigrahasthāna (point of defeat)"@en .
+shl:pratijnahani      a shl:Nigrahasthana ; rdfs:label "pratijñāhāni — abandoning the thesis"@en .
+shl:pratijnantara     a shl:Nigrahasthana ; rdfs:label "pratijñāntara — shifting the thesis"@en ;
+    shl:inAIDrafting "Quietly weakening a claim while keeping its headline."@en .
+shl:pratijnavirodha   a shl:Nigrahasthana ; rdfs:label "pratijñāvirodha — thesis contradicts its reason"@en .
+shl:pratijnasamnyasa  a shl:Nigrahasthana ; rdfs:label "pratijñāsaṃnyāsa — disowning the thesis"@en .
+shl:hetvantara        a shl:Nigrahasthana ; rdfs:label "hetvantara — shifting the reason"@en .
+shl:arthantara        a shl:Nigrahasthana ; rdfs:label "arthāntara — irrelevance"@en ;
+    shl:inAIDrafting "Topic drift; a fluent paragraph about something adjacent."@en .
+shl:nirarthaka        a shl:Nigrahasthana ; rdfs:label "nirarthaka — meaningless"@en .
+shl:avijnatartha      a shl:Nigrahasthana ; rdfs:label "avijñātārtha — unintelligible"@en .
+shl:aparthaka         a shl:Nigrahasthana ; rdfs:label "apārthaka — incoherent sequence"@en ;
+    shl:inAIDrafting "Sentences individually fine, jointly incoherent."@en .
+shl:apraptakala       a shl:Nigrahasthana ; rdfs:label "aprāptakāla — wrong order"@en .
+shl:nyuna             a shl:Nigrahasthana ; rdfs:label "nyūna — deficient, a member missing"@en ;
+    shl:inAIDrafting "Claim with no reason, or reason with no example."@en .
+shl:adhika            a shl:Nigrahasthana ; rdfs:label "adhika — superfluous"@en ;
+    shl:inAIDrafting "Padding; three examples where one suffices."@en .
+shl:punarukta         a shl:Nigrahasthana ; rdfs:label "punarukta — repetition"@en ;
+    shl:inAIDrafting "Restating the same point in new words."@en .
+shl:ananubhashana     a shl:Nigrahasthana ; rdfs:label "ananubhāṣaṇa — failing to restate the objection"@en ;
+    shl:inAIDrafting "Replying to a straw version of the objection."@en .
+shl:ajnana            a shl:Nigrahasthana ; rdfs:label "ajñāna — not understanding"@en .
+shl:apratibha         a shl:Nigrahasthana ; rdfs:label "apratibhā — no reply"@en .
+shl:vikshepa          a shl:Nigrahasthana ; rdfs:label "vikṣepa — evasion"@en .
+shl:matanujna         a shl:Nigrahasthana ; rdfs:label "matānujñā — admitting the opponent's charge by counter-charge"@en .
+shl:paryanuyojyopekshana a shl:Nigrahasthana ; rdfs:label "paryanuyojyopekṣaṇa — overlooking a censurable point"@en ;
+    shl:inAIDrafting "Sycophancy: failing to flag a flaw in the author's argument."@en .
+shl:niranuyojyanuyoga a shl:Nigrahasthana ; rdfs:label "niranuyojyānuyoga — censuring the uncensurable"@en ;
+    shl:inAIDrafting "Manufactured criticism (vitaṇḍā behaviour)."@en .
+shl:apasiddhanta      a shl:Nigrahasthana ; rdfs:label "apasiddhānta — departing from one's accepted tenet"@en ;
+    shl:inAIDrafting "Contradicting a position fixed earlier in the same paper."@en .
+shl:hetvabhasaN       a shl:Nigrahasthana ; rdfs:label "hetvābhāsa — relying on a pseudo-reason"@en .
+
+shl:Drishtantabhasa a owl:Class ; rdfs:subClassOf shl:Defect ;
+    rdfs:label "dṛṣṭāntābhāsa (pseudo-example)"@en ;
+    rdfs:comment "An example or analogy that does not actually exhibit what it is offered for (the term is from the Buddhist logic manual Nyāyapraveśa). The check an author runs on an AI-proposed analogy before accepting it."@en ;
+    shl:inAIDrafting "A vivid analogy whose shared property does not hold in the target case."@en .
+shl:NoSharedProperty a shl:Drishtantabhasa ; rdfs:label "the property the analogy relies on is absent in one of the two cases"@en .
+shl:ProvesTooMuch    a shl:Drishtantabhasa ; rdfs:label "the example would equally support the opposite claim"@en .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. Layers of authorship (commentary genres)
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:AuthorshipLayer a owl:Class ; rdfs:label "authorship layer"@en ;
+    rdfs:comment "Where in the commentarial stack a contribution sits; independent of which agent made it."@en .
+shl:Mula     a shl:AuthorshipLayer ; rdfs:label "mūla — the root idea or claim"@en .
+shl:Vritti   a shl:AuthorshipLayer ; rdfs:label "vṛtti — brief gloss"@en .
+shl:Bhashya  a shl:AuthorshipLayer ; rdfs:label "bhāṣya — full exposition"@en .
+shl:Varttika a shl:AuthorshipLayer ; rdfs:label "vārttika — critical supplement"@en .
+shl:Tika     a shl:AuthorshipLayer ; rdfs:label "ṭīkā — clarifying sub-commentary"@en .
+shl:atLayer a owl:ObjectProperty ; rdfs:domain shl:Act ; rdfs:range shl:AuthorshipLayer .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. Ledger, anchoring, disclosure (adhikāra)
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:Commit a owl:Class ; rdfs:subClassOf prov:Bundle ;
+    rdfs:label "commit"@en ;
+    rdfs:comment "A content-addressed, signed record of one or more acts and the version they produce."@en .
+shl:records a owl:ObjectProperty ; rdfs:domain shl:Commit ; rdfs:range shl:Act .
+shl:yieldsVersion a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:domain shl:Commit ; rdfs:range shl:Version .
+shl:parentCommit a owl:ObjectProperty ; rdfs:domain shl:Commit ; rdfs:range shl:Commit .
+shl:contentHash a owl:DatatypeProperty ; rdfs:domain shl:Commit ; rdfs:range xsd:string .
+shl:signature a owl:DatatypeProperty ; rdfs:domain shl:Commit ; rdfs:range xsd:string .
+
+shl:Anchor a owl:Class ; rdfs:label "anchor"@en ;
+    rdfs:comment "A timestamped publication of a root hash in an external append-only log (public chain or transparency log). Content never leaves the private store; only the hash is anchored."@en .
+shl:anchoredBy a owl:ObjectProperty ; rdfs:domain shl:Commit ; rdfs:range shl:Anchor .
+shl:anchorLog a owl:DatatypeProperty ; rdfs:domain shl:Anchor ; rdfs:range xsd:anyURI .
+
+shl:DisclosureLevel a owl:Class ; rdfs:label "disclosure level"@en .
+shl:L0_Existence a shl:DisclosureLevel ; rdfs:label "L0 existence — a record exists and is anchored"@en .
+shl:L1_Profile   a shl:DisclosureLevel ; rdfs:label "L1 profile — acknowledgement vector by act family"@en .
+shl:L2_Acts      a shl:DisclosureLevel ; rdfs:label "L2 acts — who did which act on which unit, no content"@en .
+shl:L3_Content   a shl:DisclosureLevel ; rdfs:label "L3 content — the diffs and instructions themselves"@en .
+shl:subsumes a owl:ObjectProperty, owl:TransitiveProperty ; rdfs:domain shl:DisclosureLevel ; rdfs:range shl:DisclosureLevel .
+shl:L3_Content shl:subsumes shl:L2_Acts . shl:L2_Acts shl:subsumes shl:L1_Profile . shl:L1_Profile shl:subsumes shl:L0_Existence .
+
+shl:Adhikara a owl:Class ; rdfs:label "adhikāra (grant)"@en, "अधिकारः"@sa-Deva ;
+    rdfs:comment "An entitlement to query the record: holder, level, scope, purpose, expiry, grantor. Grants are themselves ledgered."@en .
+shl:grantedTo a owl:ObjectProperty ; rdfs:domain shl:Adhikara ; rdfs:range shl:Agent .
+shl:grantedBy a owl:ObjectProperty ; rdfs:domain shl:Adhikara ; rdfs:range shl:Agent .
+shl:atLevel a owl:ObjectProperty ; rdfs:domain shl:Adhikara ; rdfs:range shl:DisclosureLevel .
+shl:overWork a owl:ObjectProperty ; rdfs:domain shl:Adhikara ; rdfs:range shl:Tantra .
+shl:purpose a owl:DatatypeProperty ; rdfs:domain shl:Adhikara ; rdfs:range xsd:string .
+shl:validUntil a owl:DatatypeProperty ; rdfs:domain shl:Adhikara ; rdfs:range xsd:dateTime .
+shl:underAdhikara a owl:ObjectProperty ; rdfs:domain shl:Query ; rdfs:range shl:Adhikara .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. Acknowledgement and judgement (slēvā generalised)
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:Acknowledgement a owl:Class ;
+    rdfs:label "acknowledgement (slēvā entry)"@en ;
+    rdfs:comment "Append-only unit of recognised work for one act. base points by act kind; points after modifiers. Human and AI acts are both acknowledged, reported separately; the profile is a vector over act families, never a single percentage."@en .
+shl:acknowledges a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:domain shl:Acknowledgement ; rdfs:range shl:Act .
+shl:basePoints a owl:DatatypeProperty ; rdfs:domain shl:Acknowledgement ; rdfs:range xsd:integer .
+shl:points a owl:DatatypeProperty ; rdfs:domain shl:Acknowledgement ; rdfs:range xsd:integer ;
+    rdfs:comment "Signed: a revocation is a negative entry."@en .
+shl:reverses a owl:ObjectProperty ; rdfs:domain shl:Acknowledgement ; rdfs:range shl:Acknowledgement .
+
+shl:Modifier a owl:Class ; rdfs:label "modifier"@en .
+shl:IndependenceBonus  a shl:Modifier ; rdfs:label "independence — produced blind-first"@en .
+shl:SurvivalWeight     a shl:Modifier ; rdfs:label "survival — share of the unit present in the final version"@en .
+shl:VerificationWeight a shl:Modifier ; rdfs:label "verification — rests on an examined pramāṇa"@en .
+shl:DialecticalYield   a shl:Modifier ; rdfs:label "yield — the move changed the settled text"@en .
+shl:GenesisPremium     a shl:Modifier ; rdfs:label "genesis — first to put this idea on the page"@en .
+shl:appliesModifier a owl:ObjectProperty ; rdfs:domain shl:Acknowledgement ; rdfs:range shl:Modifier .
+
+shl:Judgement a owl:Class ; rdfs:subClassOf prov:Activity ;
+    rdfs:label "judgement"@en ;
+    rdfs:comment "A madhyastha's rated assessment of quality on a rubric dimension — the human-subjective component, kept separate from computed acknowledgement."@en .
+shl:QualityDimension a owl:Class ; rdfs:label "quality dimension"@en .
+shl:Soundness   a shl:QualityDimension ; rdfs:label "soundness — free of hetvābhāsa"@en .
+shl:Originality a shl:QualityDimension ; rdfs:label "originality — mūla / svasaṃjñā contributed"@en .
+shl:Fidelity    a shl:QualityDimension ; rdfs:label "fidelity — sources say what they are cited for"@en .
+shl:Economy     a shl:QualityDimension ; rdfs:label "economy — free of adhika / punarukta"@en .
+shl:Fairness    a shl:QualityDimension ; rdfs:label "fairness — pūrvapakṣa stated at its strongest"@en .
+shl:judges a owl:ObjectProperty ; rdfs:domain shl:Judgement ; rdfs:range [ owl:unionOf ( shl:Act shl:TextUnit shl:Tantra ) ] .
+shl:onDimension a owl:ObjectProperty ; rdfs:domain shl:Judgement ; rdfs:range shl:QualityDimension .
+shl:score a owl:DatatypeProperty ; rdfs:domain shl:Judgement ; rdfs:range xsd:decimal .
+shl:rationale a owl:DatatypeProperty ; rdfs:domain [ owl:unionOf ( shl:Judgement shl:Act ) ] ; rdfs:range xsd:string .
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 9. Alignment with hss: deliberation threads, yukti assertions, lifecycle,
+#    tenets, reserved slots, reader handles
+#    (hss docs: deliberation_vocabulary.md, tantrayukti_system_mapping.md,
+#     tantrayukti_pilot_spec.md, om_handles_directive.md)
+# ─────────────────────────────────────────────────────────────────────────────
+
+shl:Vimarsha a owl:Class ; rdfs:subClassOf prov:Bundle ;
+    rdfs:label "vimarśa (deliberation thread)"@en, "विमर्शः"@sa-Deva ;
+    rdfs:comment "The whole discussion attached to one text unit: every request, candidate, rejected alternative, objection, check and decision. The sub-work behind a sentence. Term shared with hss deliberation_vocabulary.md (one Vimarśa per verse × language there; one per text unit here)."@en .
+shl:aboutUnit a owl:ObjectProperty ; rdfs:domain shl:Vimarsha ; rdfs:range shl:TextUnit .
+shl:containsAct a owl:ObjectProperty ; rdfs:domain shl:Vimarsha ; rdfs:range shl:Act .
+shl:Candidate a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "candidate (vikalpa)"@en ;
+    rdfs:comment "One of several alternatives proposed for a slot. Rejected candidates are kept in the vimarśa, never deleted — they are evidence of the choice that was made."@en .
+
+# Multi-label yukti typing, after the hss tantrayukti pilot: a unit may do two
+# things at once, and each typing carries its own asserter and epistemic status.
+shl:YuktiAssertion a owl:Class ;
+    rdfs:label "yukti assertion"@en ;
+    rdfs:comment "Reified claim that a text unit enacts a yukti. The same yukti projects as a property of the unit (node), a relation to another unit (edge) and a workflow it opens (operation)."@en .
+shl:onUnit a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:domain shl:YuktiAssertion ; rdfs:range shl:TextUnit .
+shl:assertsYukti a owl:ObjectProperty, owl:FunctionalProperty ; rdfs:domain shl:YuktiAssertion ; rdfs:range shl:Yukti .
+shl:relatesTo a owl:ObjectProperty ; rdfs:domain shl:YuktiAssertion ; rdfs:range shl:TextUnit ;
+    rdfs:comment "The other end, for edge-like yuktis (atideśa, pradeśa, the āvekṣaṇa pair, pūrvapakṣa → uttarapakṣa)."@en .
+shl:assertedBy a owl:ObjectProperty ; rdfs:domain shl:YuktiAssertion ; rdfs:range shl:Agent .
+shl:confidence a owl:DatatypeProperty ; rdfs:domain shl:YuktiAssertion ; rdfs:range xsd:decimal .
+shl:EpistemicStatus a owl:Class ; rdfs:label "epistemic status"@en .
+shl:Explicit      a shl:EpistemicStatus ; rdfs:label "explicit — marked in the text"@en .
+shl:Inferred      a shl:EpistemicStatus ; rdfs:label "inferred — function read from context"@en .
+shl:Disputed      a shl:EpistemicStatus ; rdfs:label "disputed — agents assign different yuktis"@en .
+shl:Reconstructed a shl:EpistemicStatus ; rdfs:label "reconstructed — supplied after the fact"@en .
+shl:hasEpistemicStatus a owl:ObjectProperty ; rdfs:domain shl:YuktiAssertion ; rdfs:range shl:EpistemicStatus .
+
+shl:ExtendedYuktis a skos:ConceptScheme ;
+    rdfs:label "Tantrayukti — yuktis outside the Arthaśāstra 32"@en ;
+    rdfs:comment "Counts differ by source (Caraka 36; Suśruta and Arthaśāstra 32; Aṣṭāṅgasaṅgraha about 40; TantraTagger's Kāśikā benchmark uses 39). The enum is open. Seeded with the extra devices hss already uses."@en .
+shl:prayojana  a shl:Yukti, skos:Concept ; skos:inScheme shl:ExtendedYuktis ; rdfs:label "prayojana"@sa-Latn ; skos:definition "statement of purpose"@en ;
+    shl:inPaper "Motivation; why the paper exists."@en .
+shl:sambhava   a shl:Yukti, skos:Concept ; skos:inScheme shl:ExtendedYuktis ; rdfs:label "saṃbhava"@sa-Latn ; skos:definition "what is possible or derivable"@en ;
+    shl:inPaper "Feasibility and validity checks."@en .
+shl:anekanta   a shl:Yukti, skos:Concept ; skos:inScheme shl:ExtendedYuktis ; rdfs:label "anekānta"@sa-Latn ; skos:definition "a standpoint-relative claim"@en ;
+    shl:inPaper "A claim true within a stated frame or tradition."@en .
+shl:pratyutsara a shl:Yukti, skos:Concept ; skos:inScheme shl:ExtendedYuktis ; rdfs:label "pratyutsāra"@sa-Latn ; skos:definition "setting a view aside, rebuttal"@en ;
+    shl:inPaper "Explicit rebuttal of a prior view."@en .
+shl:uddhara    a shl:Yukti, skos:Concept ; skos:inScheme shl:ExtendedYuktis ; rdfs:label "uddhāra"@sa-Latn ; skos:definition "extracting a sub-point or exception"@en ;
+    shl:inPaper "Carving a special case out of a general claim."@en .
+
+# Lifecycle of a text unit — the hss deliberation ladder, shared names.
+shl:LifecycleState a owl:Class ; rdfs:label "lifecycle state"@en .
+shl:Prastuta    a shl:LifecycleState ; rdfs:label "prastuta — proposed"@en .
+shl:Vimarshya   a shl:LifecycleState ; rdfs:label "vimarśya — under deliberation"@en .
+shl:Samvita     a shl:LifecycleState ; rdfs:label "saṃvīta — vetted by co-authors"@en .
+shl:Siddha      a shl:LifecycleState ; rdfs:label "siddha — in the settled text"@en .
+shl:Pratishiddha a shl:LifecycleState ; rdfs:label "pratiṣiddha — rejected (kept in the vimarśa)"@en .
+shl:Apasrita    a shl:LifecycleState ; rdfs:label "apasṛta — superseded"@en .
+shl:hasLifecycle a owl:ObjectProperty ; rdfs:domain shl:TextUnit ; rdfs:range shl:LifecycleState .
+
+# Kinds of tenet (Nyāyasūtra 1.1.26–31), as used in the vāda paper.
+shl:TenetKind a owl:Class ; rdfs:label "kind of tenet (siddhānta)"@en .
+shl:SarvatantraSiddhanta  a shl:TenetKind ; rdfs:label "sarvatantra — accepted by every relevant school"@en .
+shl:PratitantraSiddhanta  a shl:TenetKind ; rdfs:label "pratitantra — accepted in one school, not another"@en .
+shl:AdhikaranaSiddhanta   a shl:TenetKind ; rdfs:label "adhikaraṇa — accepting it commits you to further tenets"@en .
+shl:AbhyupagamaSiddhanta  a shl:TenetKind ; rdfs:label "abhyupagama — provisionally admitted for examination"@en ;
+    rdfs:comment "The honest status of an adopted-but-unexamined AI draft: admitted for the sake of examining it, not yet established."@en .
+shl:hasTenetKind a owl:ObjectProperty ; rdfs:domain shl:Claim ; rdfs:range shl:TenetKind .
+
+# Reserved slots — what the AI declines to fill and hands to the author.
+shl:ReservedSlot a owl:Class ; rdfs:subClassOf shl:TextUnit ;
+    rdfs:label "reserved slot (author-owed)"@en ;
+    rdfs:comment "A visible placeholder the AI leaves instead of inventing content it cannot verify: a missing recent citation, a textual locus, an author's affiliation. Leaving the gap is a recorded act; manufacturing a filler is a defect."@en .
+shl:Reserve a owl:Class ; rdfs:subClassOf shl:ExaminingAct ; rdfs:label "reserve a slot for the author"@en .
+shl:owedBy a owl:ObjectProperty ; rdfs:domain shl:ReservedSlot ; rdfs:range shl:Agent .
+shl:filledBy a owl:ObjectProperty ; rdfs:domain shl:ReservedSlot ; rdfs:range shl:Act .
+
+# Reader handles — typed entry points a reviewer uses to move through the paper.
+shl:ReaderHandle a owl:Class ;
+    rdfs:label "reader handle"@en ;
+    rdfs:comment "A named, typed query over the record that takes a reader to every unit of one kind — e.g. 'every objection and its reply', 'every example the author verified', 'every claim resting on an unverified source'. The reviewer-facing projection of the ontology (after hss om_handles_directive.md)."@en .
+shl:selectsYukti a owl:ObjectProperty ; rdfs:domain shl:ReaderHandle ; rdfs:range shl:Yukti .
+shl:selectsAct a owl:ObjectProperty ; rdfs:domain shl:ReaderHandle ; rdfs:range owl:Class .
+shl:selectsStatus a owl:ObjectProperty ; rdfs:domain shl:ReaderHandle ; rdfs:range [ owl:unionOf ( shl:EvidenceStatus shl:LifecycleState ) ] .
+shl:minimumLevel a owl:ObjectProperty ; rdfs:domain shl:ReaderHandle ; rdfs:range shl:DisclosureLevel ;
+    rdfs:comment "The disclosure level a reader needs for this handle to return anything."@en .
+shl:sparql a owl:DatatypeProperty ; rdfs:domain shl:ReaderHandle ; rdfs:range xsd:string .
+
+shl:handle_objections a shl:ReaderHandle ; rdfs:label "Objections and replies"@en ;
+    shl:selectsYukti shl:purvapaksha, shl:uttarapaksha ; shl:minimumLevel shl:L0_Existence .
+shl:handle_examples a shl:ReaderHandle ; rdfs:label "Examples and analogies"@en ;
+    shl:selectsYukti shl:nidarshana, shl:upamana ; shl:minimumLevel shl:L0_Existence .
+shl:handle_sources a shl:ReaderHandle ; rdfs:label "Sources, by verification status"@en ;
+    shl:selectsYukti shl:apadesha ; shl:minimumLevel shl:L0_Existence .
+shl:handle_limits a shl:ReaderHandle ; rdfs:label "Limits and exceptions"@en ;
+    shl:selectsYukti shl:apavarga, shl:ekanta ; shl:minimumLevel shl:L0_Existence .
+shl:handle_ai_verified a shl:ReaderHandle ; rdfs:label "AI-proposed, author-verified"@en ;
+    shl:selectsAct shl:Affirm ; shl:minimumLevel shl:L2_Acts .

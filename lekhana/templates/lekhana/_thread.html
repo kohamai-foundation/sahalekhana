@@ -1,0 +1,48 @@
+<article class="thread" id="ask-{{ t.pk }}">
+  <header>
+    <span class="dev">{{ t.device.label|default:t.device_code }}</span>
+    {% if t.unit_id %}<code>{{ t.unit_id }}</code>{% else %}<span class="muted">whole paper</span>{% endif %}
+    <span class="meta">{{ t.requested_by.get_username }} · {{ t.created_at|date:"j M, H:i" }}{% if t.model %} · {{ t.model }}{% endif %}</span>
+  </header>
+  {% if t.instruction %}<p class="instr">“{{ t.instruction }}”{% if t.constraint %} <span class="muted">Constraint: {{ t.constraint }}</span>{% endif %}</p>{% endif %}
+  {% if t.status == "failed" %}<p class="err">{{ t.error }}</p>{% endif %}
+  {% for c in t.candidates.all %}
+    <div class="cand {{ c.status }}">
+      <p><b>({{ c.letter }})</b> {{ c.text }}</p>
+      {% if t.purpose == "review" %}
+        {% if c.check_text %}<p class="check"><span class="pl">Check</span>{{ c.check_text }}</p>{% endif %}
+      {% elif c.status == "proposed" %}
+        {% if c.examined_at %}<p class="check"><span class="pl">Check</span>{{ c.check_text }}</p>{% endif %}
+        {% if can_write %}
+          <form method="post" action="{% url 'lekhana:candidate' project.slug c.pk %}" class="decide" data-leaves-editor>
+            {% csrf_token %}
+            {% if c.examined_at %}
+              <button name="action" value="accept" class="btn primary sm">Accept</button>
+            {% else %}
+              <button name="action" value="examine" class="btn sm">Examine</button>
+              <button name="action" value="accept" class="link" formnovalidate>Accept without examining</button>
+            {% endif %}
+          </form>
+          <form method="post" action="{% url 'lekhana:candidate' project.slug c.pk %}" class="decide" data-leaves-editor>
+            {% csrf_token %}<input type="hidden" name="action" value="reject">
+            <select name="reason" required aria-label="Why reject ({{ c.letter }})">
+              <option value="">Reject because…</option>
+              <optgroup label="A defect of reasoning">{% for r in defect_reasons %}<option value="{{ r.code }}">{{ r.label }}</option>{% endfor %}</optgroup>
+              <optgroup label="Other grounds">{% for r in other_reasons %}<option value="{{ r.code }}">{{ r.label }}</option>{% endfor %}</optgroup>
+            </select>
+            <input name="note" placeholder="Note (needed for Other)" aria-label="Note">
+            <button class="btn sm">Reject</button>
+          </form>
+        {% else %}
+          <p class="meta">Waiting for the author.</p>
+        {% endif %}
+      {% elif c.status == "accepted" %}
+        <p class="meta">Accepted by {{ c.decided_by.get_username }}{% if c.examined_at %} after examining it{% else %} <span class="err">without examining it</span>{% endif %} · now <code>{{ c.placed_unit }}</code></p>
+      {% else %}
+        <p class="meta">Rejected by {{ c.decided_by.get_username }}: {{ c.reason_label }}{% if c.reason_note %}. {{ c.reason_note }}{% endif %}</p>
+      {% endif %}
+    </div>
+  {% empty %}
+    {% if t.status != "failed" %}<p class="meta">No candidates.</p>{% endif %}
+  {% endfor %}
+</article>

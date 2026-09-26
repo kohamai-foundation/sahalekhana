@@ -1,0 +1,113 @@
+{% extends "lekhana/base.html" %}
+{% block title %}{{ project.title }} · Review · Sahalekhana{% endblock %}
+{% block content %}
+<div class="ws">
+  <aside class="pane">
+    <div class="pl">Read the paper</div>
+    <p class="seg">
+      <a href="?view=annotated{% if handle %}&handle={{ handle }}{% endif %}{% if selected_unit %}&unit={{ selected_unit }}{% endif %}" class="{% if view == 'annotated' %}on{% endif %}">With its making</a>
+      <a href="?view=plain{% if selected_unit %}&unit={{ selected_unit }}{% endif %}" class="{% if view == 'plain' %}on{% endif %}">Paper only</a>
+    </p>
+
+    {% if view == "annotated" %}
+      <div class="pl">Handles</div>
+      <ul class="handles">
+        <li><a href="?view=annotated{% if selected_unit %}&unit={{ selected_unit }}{% endif %}" class="{% if not handle %}on{% endif %}">Everything</a></li>
+        {% for h in handles %}<li><a href="?view=annotated&handle={{ h.code }}{% if selected_unit %}&unit={{ selected_unit }}{% endif %}" class="{% if handle == h.code %}on{% endif %}">{{ h.label }}<span class="muted">{{ h.count }}</span></a></li>{% endfor %}
+      </ul>
+      <div class="pl">Marks</div>
+      <div class="legend">
+        <span><i class="sw" style="border-bottom:2px dotted var(--nila)"></i>AI-proposed, author examined it</span>
+        <span><i class="sw" style="border-bottom:2px dashed var(--sindura)"></i>AI-proposed, accepted unexamined</span>
+        <span><i class="sw" style="height:8px;background:var(--hartala-soft)"></i>reworded after it was placed</span>
+        <span><i class="sw" style="border-bottom:2px solid var(--rule)"></i>grey: no recorded origin</span>
+      </div>
+    {% endif %}
+
+    <div class="pl">People on this paper</div>
+    <ul class="plain">{% for m in members %}<li>{{ m.user.get_username }} · {{ m.get_role_display }}</li>{% endfor %}</ul>
+  </aside>
+
+  <section class="pane">
+    {% if parse_error %}<p class="err">{{ parse_error }}</p>{% endif %}
+    <article class="paper {{ view }}">
+      <h1>{{ project.title }}</h1>
+      {% for b in blocks %}
+        {% if b.type == "section" %}<h2>{{ b.title }}</h2>
+        {% else %}<p>{% for u in b.units %}<a id="u-{{ u.id }}" href="?view={{ view }}{% if handle %}&handle={{ handle }}{% endif %}&unit={{ u.id }}#u-{{ u.id }}" class="u o-{{ u.origin }}{% if u.edited %} edited{% endif %}{% if not u.matches %} dim{% endif %}{% if u.id == selected_unit %} sel{% endif %}" title="{{ u.id }} · {{ u.iast }} · {{ u.human }} human act{{ u.human|pluralize }}, {{ u.ai }} AI act{{ u.ai|pluralize }}">{{ u.text }}</a> {% endfor %}</p>{% endif %}
+      {% empty %}<p class="muted">The paper has no units yet.</p>
+      {% endfor %}
+    </article>
+  </section>
+
+  <aside class="pane">
+    {% if selected %}
+      <div class="pl">How <code>{{ selected_unit }}</code> came to be</div>
+      <ol class="timeline">
+        {% for v in selected.versions %}
+          <li>
+            <span class="meta">{{ v.date|slice:":16" }} · {{ v.author }} · <code>{{ v.sha|slice:":7" }}</code></span>
+            {% if v.text is None %}<p class="muted">Removed from the paper.</p>{% else %}<p>{{ v.text }}</p>{% endif %}
+            {% for a in v.acts %}<span class="act{% if a.is_ai %} ai{% endif %}">{{ a.get_kind_display }} · {{ a.agent }} · {{ a.get_role_display }}{% if a.defect %} · {{ a.defect }}{% endif %}</span>{% endfor %}
+          </li>
+        {% empty %}<li class="muted">No committed versions.</li>{% endfor %}
+      </ol>
+      {% if composition.any %}
+        <div class="pl">How this unit's text arrived</div>
+        <p class="tnum">{{ composition.typed_pct }}% typed, {{ composition.pasted_pct }}% pasted
+          ({{ composition.pastes }} paste{{ composition.pastes|pluralize }}:
+          {{ composition.ai_candidate }} from the AI's candidates,
+          {{ composition.own_paper }} from elsewhere here,
+          {{ composition.outside }} from outside).</p>
+      {% endif %}
+      {% if selected.acts %}
+        <div class="pl">Every act on this unit</div>
+        <p>{% for a in selected.acts %}<span class="act{% if a.is_ai %} ai{% endif %}">{{ a.get_kind_display }} · {{ a.agent }}{% if a.defect %} · {{ a.defect }}{% endif %}{% if not a.commit_sha %} · pending{% endif %}</span>{% endfor %}</p>
+      {% endif %}
+      {% if selected.threads %}
+        <div class="pl">Requests to the AI behind it</div>
+        {% for t in selected.threads %}{% include "lekhana/_thread.html" with can_write=False %}{% endfor %}
+      {% endif %}
+      <p class="meta"><a href="?view={{ view }}{% if handle %}&handle={{ handle }}{% endif %}">Close this unit</a></p>
+    {% else %}
+      <p class="muted">Select any sentence in the paper to see every version of it, who made each change, and the requests to the AI behind it.</p>
+    {% endif %}
+
+    <div class="pl">Ask the paper</div>
+    {% if not ai_configured %}<p class="warn">The AI isn't configured on this server. Asks are still recorded.</p>{% endif %}
+    <form method="post" action="{% url 'lekhana:review_ask' project.slug %}" class="stack">
+      {% csrf_token %}
+      <label>I want <select name="device">{% for d in review_devices %}<option value="{{ d.code }}">{{ d.label }}</option>{% endfor %}</select></label>
+      <label>About unit <input name="unit_id" value="{{ selected_unit }}" placeholder="blank = the whole paper" autocomplete="off"></label>
+      <label>Request <textarea name="instruction" rows="2" placeholder="What do you want to understand or check?"></textarea></label>
+      <div><button class="btn">Ask</button> <span class="meta">Answers are recorded, never placed in the paper.</span></div>
+    </form>
+    {% for t in review_asks %}{% include "lekhana/_thread.html" with can_write=False %}{% endfor %}
+
+    <div class="pl">Review points{% if selected_unit %} on this unit{% endif %}</div>
+    <form method="post" action="{% url 'lekhana:point' project.slug %}" class="stack">
+      {% csrf_token %}
+      <input type="hidden" name="unit_id" value="{{ selected_unit }}">
+      <label>Kind <select name="kind">{% for code, label in point_kinds %}<option value="{{ code }}">{{ label }}</option>{% endfor %}</select></label>
+      <label>Point <textarea name="text" rows="3" required placeholder="{% if selected_unit %}About {{ selected_unit }}{% else %}About the whole paper{% endif %}"></textarea></label>
+      <div><button class="btn">Record point</button></div>
+    </form>
+    {% for p in points %}
+      <div class="point" id="point-{{ p.pk }}">
+        <span class="kind">{{ p.get_kind_display }}</span>{% if p.unit_id %} · <code>{{ p.unit_id }}</code>{% endif %}
+        <span class="meta">· {{ p.author.get_username }} · {{ p.created_at|date:"j M, H:i" }}</span>
+        <p>{{ p.text }}</p>
+        {% if p.response %}
+          <div class="response"><span class="meta">{{ p.responded_by.get_username }} responded</span><p>{{ p.response }}</p></div>
+        {% elif can_write %}
+          <form method="post" action="{% url 'lekhana:respond' project.slug p.pk %}" class="stack">
+            {% csrf_token %}
+            <label>Respond <textarea name="text" rows="2" required></textarea></label>
+            <div><button class="btn sm">Send response</button></div>
+          </form>
+        {% else %}<p class="meta">Awaiting the authors' response.</p>{% endif %}
+      </div>
+    {% empty %}<p class="meta">No points yet.</p>{% endfor %}
+  </aside>
+</div>
+{% endblock %}

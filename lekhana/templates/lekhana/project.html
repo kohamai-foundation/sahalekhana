@@ -1,0 +1,160 @@
+{% extends "lekhana/base.html" %}
+{% block title %}{{ project.title }} · Write · Sahalekhana{% endblock %}
+{% block content %}
+<div class="ws">
+  <aside class="pane">
+    <div class="pl">Outline</div>
+    {% if parse_error %}<p class="err">{{ parse_error }}</p>{% endif %}
+    <ul class="outline">
+      {% for item in outline %}
+        {% if item.type == "section" %}<li class="o-sec">{{ item.title }}</li>
+        {% else %}<li class="o-unit"><code>{{ item.id }}</code><span class="dev">{{ item.iast }}</span><span class="snip">{{ item.snippet }}</span></li>{% endif %}
+      {% empty %}<li class="muted">No sections or units yet.</li>{% endfor %}
+    </ul>
+
+    <div class="pl">Owed before submission</div>
+    {% if owed %}
+      <p class="owe">{{ owed|length }} owed. Not ready to submit.</p>
+      <ul class="plain">{% for o in owed %}<li>line {{ o.line }} · {{ o.text }}</li>{% endfor %}</ul>
+    {% else %}<p class="ok">Nothing owed.</p>{% endif %}
+
+    <div class="pl">Markup</div>
+    <dl class="markup">
+      <dt><code>\adhikarana{label}{title}</code></dt><dd>a section</dd>
+      <dt><code>\yukti{id}{device}{text}</code></dt><dd>an attributable unit</dd>
+      <dt><code>\owed{what}</code></dt><dd>a slot you still owe</dd>
+      <dt><code>\ask{id}</code></dt><dd>where a new unit goes when you accept it</dd>
+    </dl>
+  </aside>
+
+  <section class="pane">
+    <div class="pl">main.tex <span class="muted">· HEAD <code>{{ head|slice:":7" }}</code>{% if pending %} · {{ pending }} act{{ pending|pluralize }} waiting for the next commit{% endif %}</span></div>
+    {% if unsaved %}<p class="err">The edits below are not saved.</p>{% endif %}
+    {% if tracking %}
+      <p class="meta">This paper records how text arrives: characters typed, and each paste's length and a
+        hash of it (never the text). The editor saves a recovery snapshot every few seconds.
+        <a href="{% url 'lekhana:ledger' project.slug %}">Turn it off</a>.</p>
+    {% endif %}
+    <form method="post" action="{% url 'lekhana:save' project.slug %}" id="editor">
+      {% csrf_token %}
+      <input type="hidden" name="base_sha" value="{{ head }}">
+      <input type="hidden" name="step" value="review">
+      <textarea name="content" id="source" class="source" spellcheck="false" aria-label="main.tex source">{{ source }}</textarea>
+      <div class="row">
+        <button type="submit" class="btn primary">Review changes</button>
+        <span class="muted">Next you confirm which edits change what the paper says, then commit.</span>
+      </div>
+    </form>
+  </section>
+
+  <aside class="pane">
+    <div class="pl">Ask the AI</div>
+    {% if not ai_configured %}<p class="warn">The AI co-writer isn't configured on this server. Asks are still recorded.</p>{% endif %}
+    <form method="post" action="{% url 'lekhana:ask' project.slug %}" class="stack" data-leaves-editor>
+      {% csrf_token %}
+      <label>For unit <input name="unit_id" list="unit-ids" required placeholder="intro.thesis" autocomplete="off"></label>
+      <datalist id="unit-ids">{% for uid in unit_ids %}<option value="{{ uid }}">{% endfor %}</datalist>
+      <label>I want
+        <select name="device">{% for d in devices %}<option value="{{ d.code }}">{{ d.label }} · {{ d.iast }}</option>{% endfor %}</select>
+      </label>
+      <label>How many
+        <select name="count"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+      </label>
+      <label>Request <textarea name="instruction" rows="2" placeholder="What should it do, and for which point?"></textarea></label>
+      <label>Constraint <input name="constraint" placeholder="e.g. plain register, no pop culture"></label>
+      <div><button type="submit" class="btn">Ask</button></div>
+    </form>
+
+    {% for t in asks %}{% include "lekhana/_thread.html" %}{% empty %}<p class="meta" style="margin-top:14px">Nothing asked yet.</p>{% endfor %}
+  </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if tracking %}
+<script>
+/* How the text arrives. Counts characters typed; for a paste, sends its length
+   and a SHA-256 of the normalised text — never the text itself. The server
+   matches that hash against the AI's own candidates, so a paste can be shown as
+   the portal's own suggestion rather than something from outside. */
+(function () {
+  var source = document.getElementById("source");
+  var form = document.getElementById("editor");
+  if (!source || !form) return;
+  var url = "{% url 'lekhana:compose' project.slug %}";
+  var token = form.querySelector("[name=csrfmiddlewaretoken]").value;
+  var typed = 0, queue = [], lastSnapshot = source.value;
+
+  function unitAtCaret() {
+    var upto = source.value.slice(0, source.selectionStart || 0);
+    var pattern = /\\yukti\{([A-Za-z0-9._:-]+)\}/g, found = "", match;
+    while ((match = pattern.exec(upto)) !== null) { found = match[1]; }
+    return found;
+  }
+
+  function hash(text) {
+    var normalised = text.replace(/\s+/g, " ").trim();
+    if (!window.crypto || !crypto.subtle) return Promise.resolve("");
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(normalised)).then(function (buffer) {
+      return Array.prototype.map.call(new Uint8Array(buffer), function (b) {
+        return b.toString(16).padStart(2, "0");
+      }).join("");
+    }).catch(function () { return ""; });
+  }
+
+  source.addEventListener("paste", function (event) {
+    var text = (event.clipboardData || window.clipboardData).getData("text") || "";
+    if (!text) return;
+    var unit = unitAtCaret();
+    hash(text).then(function (digest) {
+      queue.push({ kind: "paste", chars: text.length, hash: digest, unit_id: unit });
+    });
+  });
+
+  source.addEventListener("input", function (event) {
+    var kind = event.inputType || "";
+    if (kind.indexOf("insert") === 0 && kind !== "insertFromPaste" && kind !== "insertFromDrop") {
+      typed += event.data ? event.data.length : 1;
+    }
+  });
+
+  function flush(leaving) {
+    var events = queue.splice(0, queue.length);
+    if (typed) { events.push({ kind: "typing", chars: typed }); typed = 0; }
+    var changed = source.value !== lastSnapshot;
+    if (!events.length && !changed) return;
+    lastSnapshot = source.value;
+    fetch(url, {
+      method: "POST", credentials: "same-origin", keepalive: !!leaving,
+      headers: { "Content-Type": "application/json", "X-CSRFToken": token },
+      body: JSON.stringify({ events: events, snapshot: source.value })
+    }).catch(function () {
+      // Keep the paste events for the next attempt; typed characters are lost
+      // rather than double-counted.
+      queue = events.filter(function (e) { return e.kind === "paste"; }).concat(queue);
+    });
+  }
+
+  setInterval(function () { flush(false); }, 15000);
+  window.addEventListener("pagehide", function () { flush(true); });
+  form.addEventListener("submit", function () { flush(false); });
+})();
+</script>
+{% endif %}
+<script>
+(function () {
+  var source = document.getElementById("source");
+  if (!source) return;
+  var dirty = {{ unsaved|yesno:"true,false" }};
+  source.addEventListener("input", function () { dirty = true; });
+  document.getElementById("editor").addEventListener("submit", function () { dirty = false; });
+  document.querySelectorAll("form[data-leaves-editor]").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+      if (dirty && !confirm("main.tex has edits you haven't committed. This reloads the page from the last commit and those edits will be lost. Continue?")) {
+        event.preventDefault();
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}
