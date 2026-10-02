@@ -56,7 +56,7 @@ class AskTests(RepoTestCase):
         self.assertEqual(thread.candidates.count(), 3)
         instruct = Act.objects.get(kind="instruct")
         self.assertEqual((instruct.role, instruct.agent), ("prayojaka", "human:ram"))
-        drafts = Act.objects.filter(kind="draft", agent="ai:claude-opus-5", role="prayojya")
+        drafts = Act.objects.filter(kind="draft", agent="ai:gpt-5.5", role="prayojya")
         self.assertEqual(drafts.count(), 3)
         self.assertFalse(Act.objects.filter(ask=thread).exclude(commit_sha="").exists())
 
@@ -108,7 +108,7 @@ class DecideTests(RepoTestCase):
         services.accept(self.c, self.author)
         self.assertIn(r"\owed{evidence that inverted order slows readers}", self.src())
         self.assertIn(r"50\% of Yoda's lines \& more", self.src())
-        self.assertTrue(Act.objects.filter(kind="reserve", agent="ai:claude-opus-5").exists())
+        self.assertTrue(Act.objects.filter(kind="reserve", agent="ai:gpt-5.5").exists())
 
     def test_same_device_on_an_existing_unit_rewrites_it(self):
         self.edit(THESIS + "}", THESIS + r"} \yukti{thesis.analogy}{upamana}{placeholder}", meaning=())
@@ -160,7 +160,7 @@ class ReviewTests(RepoTestCase):
         self.assertEqual(self.src(), before)
         lines = self.act_lines()
         self.assertTrue(any("review_ask" in l and "role=parikshaka" in l for l in lines))
-        self.assertTrue(any(l.split()[1] == "explain" and "agent=ai:claude-opus-5" in l for l in lines))
+        self.assertTrue(any(l.split()[1] == "explain" and "agent=ai:gpt-5.5" in l for l in lines))
         self.assertTrue((self.path / f".sahalekhana/vimarsha/{thread.pk}.json").exists())
         with self.assertRaises(services.InvalidAction):
             services.accept(thread.candidates.first(), self.author)

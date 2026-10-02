@@ -47,6 +47,7 @@ The writer has given you a role for this discussion. Its restrictions are below 
 # ── tools ────────────────────────────────────────────────────────────────────
 
 def _tool(name, description, properties, required):
+    """The portal's own tool shape. ``lekhana.ai`` translates it for the provider."""
     return {"name": name, "description": description, "strict": True,
             "input_schema": {"type": "object", "properties": properties,
                              "required": required, "additionalProperties": False}}
@@ -254,7 +255,7 @@ def _converse(*, project, user, conversation, system, tools, messages) -> tuple[
     """The manual tool loop. Returns (reply text, tool log, model that answered)."""
     if not ai.configured():
         raise ai.AIUnavailable(
-            "The AI isn't configured on this server (ANTHROPIC_API_KEY is not set). "
+            "The AI isn't configured on this server (OPENAI_API_KEY is not set). "
             "Your message is recorded; the discussion can go on once it is set.")
     client = ai.client()
     tool_log: list[dict] = []
@@ -262,29 +263,25 @@ def _converse(*, project, user, conversation, system, tools, messages) -> tuple[
     for _ in range(MAX_STEPS):
         # A copy per request: the loop appends to `messages` as it goes, and a
         # request should carry the history as it stood when it was made.
-        response = ai.call(client, model=settings.LEKHANA_MODEL, max_tokens=8000, system=system,
-                           tools=tools, messages=list(messages), effort="medium")
-        model = response.model
-        if response.stop_reason == "refusal":
+        reply = ai.call(client, model=settings.LEKHANA_MODEL, max_tokens=12000, system=system,
+                        tools=tools, messages=list(messages), effort="medium")
+        model = reply.model
+        if reply.refusal:
             raise ai.AIRefused("The AI declined to answer this. Rephrase it, or carry on without it.")
-        calls = [b for b in response.content if b.type == "tool_use"]
-        if not calls:
-            return ("\n\n".join(b.text for b in response.content if b.type == "text").strip(), tool_log, model)
-        messages.append({"role": "assistant", "content": response.content})
-        results = []
-        for call in calls:
-            payload = call.input if isinstance(call.input, dict) else {}
+        if not reply.tool_calls:
+            return reply.text, tool_log, model
+        messages.append(reply.message)
+        for call in reply.tool_calls:
             with transaction.atomic():
                 result, effect = _run_tool(project=project, user=user, conversation=conversation,
-                                           name=call.name, payload=payload)
-            entry = {"tool": call.name, "input": payload}
+                                           name=call.name, payload=call.input)
+            entry = {"tool": call.name, "input": call.input}
             if effect and "idea" in effect:
                 entry["idea"] = effect["idea"].pk
             if effect and "ask" in effect:
                 entry["ask"] = effect["ask"].pk
             tool_log.append(entry)
-            results.append({"type": "tool_result", "tool_use_id": call.id, "content": result})
-        messages.append({"role": "user", "content": results})
+            messages.append(ai.tool_result(call, result))
     return ("[the discussion used its tool budget for this turn without answering; ask again]", tool_log, model)
 
 

@@ -1,6 +1,5 @@
 """The discussion: what the AI may do, what it may never do, and what is recorded."""
 import json
-from types import SimpleNamespace
 from unittest import mock
 
 from django.test import override_settings
@@ -12,17 +11,11 @@ from lekhana.testing import RepoTestCase
 THESIS = "State the paper's thesis in one sentence."
 
 
-def block(**fields):
-    return SimpleNamespace(**fields)
-
-
-def reply(text="A question about the claim?", tool_calls=(), model="claude-opus-5"):
-    content = [block(type="tool_use", id=f"tu{i}", name=name, input=payload)
-               for i, (name, payload) in enumerate(tool_calls, 1)]
-    if text is not None:
-        content.append(block(type="text", text=text))
-    return SimpleNamespace(stop_reason="tool_use" if tool_calls else "end_turn",
-                           stop_details=None, model=model, content=content)
+def reply(text="A question about the claim?", tool_calls=(), model="gpt-5.5"):
+    calls = tuple(ai.ToolCall(id=f"tc{i}", name=name, input=payload)
+                  for i, (name, payload) in enumerate(tool_calls, 1))
+    return ai.Reply(text=text or "", model=model, tool_calls=calls,
+                    message={"role": "assistant", "content": text or ""})
 
 
 class ChatTestCase(RepoTestCase):
@@ -65,7 +58,7 @@ class DiscussionTests(ChatTestCase):
     def test_an_unconfigured_ai_still_records_what_the_writer_said(self):
         with mock.patch.object(chat.ai, "configured", return_value=False):
             turn = chat.send(conversation=self.talk, user=self.author, text="Anyone there?")
-        self.assertIn("ANTHROPIC_API_KEY", turn.text)
+        self.assertIn("OPENAI_API_KEY", turn.text)
         self.assertEqual(self.talk.turns.filter(speaker="human").count(), 1)
 
     def test_empty_messages_are_refused(self):

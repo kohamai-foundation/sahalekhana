@@ -57,7 +57,7 @@ class PortalViewTests(RepoTestCase):
         self.client.force_login(self.author)
         response = self.client.post(self.url("ask"), {"unit_id": "intro.thesis", "device": "upamana",
                                                       "count": "3", "instruction": "x"}, **UA, follow=True)
-        self.assertContains(response, "ANTHROPIC_API_KEY")
+        self.assertContains(response, "OPENAI_API_KEY")
         self.assertEqual(Ask.objects.get().status, Ask.Status.FAILED)
 
     def test_reviewer_is_sent_to_review_and_cannot_edit(self):

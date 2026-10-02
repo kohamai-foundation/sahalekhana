@@ -23,7 +23,7 @@ class RepoTestCase(TestCase):
         super().setUp()
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
-        settings_override = override_settings(LEKHANA_REPO_ROOT=tmp.name, ANTHROPIC_API_KEY="")
+        settings_override = override_settings(LEKHANA_REPO_ROOT=tmp.name, OPENAI_API_KEY="")
         settings_override.enable()
         self.addCleanup(settings_override.disable)
         self.author = User.objects.create_user("ram", password="x", email="ram@example.org")
@@ -39,7 +39,7 @@ class RepoTestCase(TestCase):
     def act_lines(self, entry=None):
         return [v for k, v in (entry or self.last())["trailers"] if k == "Act"]
 
-    def propose(self, proposals=PROPOSALS, model="claude-opus-5"):
+    def propose(self, proposals=PROPOSALS, model="gpt-5.5"):
         return mock.patch.object(services.ai, "propose", return_value=(proposals, model))
 
     def ask(self, device="upamana", unit="intro.thesis", proposals=PROPOSALS):

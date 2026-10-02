@@ -48,8 +48,8 @@ Add the app to a Django 5.2 project:
 ```python
 INSTALLED_APPS = [..., "lekhana"]
 LEKHANA_REPO_ROOT = BASE_DIR / "lekhana_repos"   # one git repo per paper
-LEKHANA_MODEL = "claude-opus-5"
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")   # AI is off without it
+LEKHANA_MODEL = "gpt-5.5"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")   # AI is off without it
 LEKHANA_LATEX_CMD = "latexmk -pdf -interaction=nonstopmode -halt-on-error"
 ```
 
@@ -64,13 +64,16 @@ and access to a paper is an author or reviewer membership.
 
 - `manage.py anchor_lekhana [--ots]` folds every paper's HEAD into one SHA-256
   and, with `--ots`, timestamps it through OpenTimestamps (only the hash leaves).
-- `manage.py test lekhana` runs the suite (167 tests, no network: the AI is mocked).
+- `manage.py test lekhana` runs the suite (99 tests, no network: the AI is mocked).
 
 ## Status
 
 Running in production at heritagesemantics.org since September 2026, behind a
-login. Honest limits: the live Claude path has only ever been exercised with
-mocks, because no API key is set on that deployment yet; an AI request holds a
+login. The co-writer calls OpenAI (`chat.completions`, structured outputs for
+asks, a manual tool loop for discussions); `lekhana/ai.py` is the only module
+that touches the SDK. Honest limits: the live path has been exercised once, by
+hand, against `gpt-5.5` — one ask and one three-step tool loop — and not yet in
+the course of writing a real paper; an AI request holds a
 web worker while it runs; commits are not signed with per-author keys, so
 tamper-evidence rests on the anchoring; and the concept note's planned
 evaluation (typing real review exchanges, measuring inter-annotator agreement,

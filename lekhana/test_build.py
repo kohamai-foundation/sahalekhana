@@ -42,7 +42,7 @@ class ExportTests(RepoTestCase):
         self._work()
         text = build.declaration(self.project)
         self.assertIn("Generated from this paper's act record", text)
-        self.assertIn("claude-opus-5", text)
+        self.assertIn("gpt-5.5", text)
         self.assertIn("accepted after examination: 1", text)
         self.assertIn("rejected: 1", text)
         self.assertIn("Grounds given for rejection: Pseudo-example", text)

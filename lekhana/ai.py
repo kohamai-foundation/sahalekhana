@@ -1,16 +1,25 @@
-"""The AI co-writer: one Claude call per ask, returning typed candidates.
+"""The AI co-writer: one model call per ask, returning typed candidates.
 
 Every failure becomes an :class:`AIFailure` whose message is shown to the
 writer as-is. The ask and its instruction are recorded either way.
+
+The provider is OpenAI, reached through ``chat.completions``. Nothing outside
+this module handles a provider-shaped object: :func:`call` returns a
+:class:`Reply`, and tools are declared in the portal's own shape
+(``name``/``description``/``input_schema``) and translated here. So the tool
+loop in ``lekhana.chat`` is written against this module, not against an SDK.
+
+What the move off Anthropic gave up, recorded here rather than discovered
+later: there is no server-side fallback model any more, so a decline reaches
+the writer as a refusal instead of being retried quietly on another model.
 """
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass, field
 
-import anthropic
+import openai
 from django.conf import settings
-
-FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 SYSTEM = """You are the AI co-writer on Sahalekhana, a portal where a researcher and an AI write an academic paper together and every act is recorded.
 
@@ -52,42 +61,125 @@ class AIRefused(AIFailure):
     pass
 
 
+# ── what a turn looks like to the rest of the portal ─────────────────────────
+
+@dataclass(frozen=True)
+class ToolCall:
+    id: str
+    name: str
+    input: dict
+
+
+@dataclass(frozen=True)
+class Reply:
+    """One model turn in the portal's terms. ``message`` is that same turn in
+    the form the next request has to replay it back in."""
+    text: str = ""
+    model: str = ""
+    tool_calls: tuple[ToolCall, ...] = ()
+    message: dict = field(default_factory=dict)
+    refusal: str = ""
+    truncated: bool = False
+
+
 def configured() -> bool:
-    return bool(settings.ANTHROPIC_API_KEY)
+    return bool(settings.OPENAI_API_KEY)
 
 
-def _client() -> anthropic.Anthropic:
-    return anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=150.0, max_retries=1)
+def _client() -> openai.OpenAI:
+    return openai.OpenAI(api_key=settings.OPENAI_API_KEY, timeout=150.0, max_retries=1)
 
 
-def client() -> anthropic.Anthropic:
+def client() -> openai.OpenAI:
     """The client, for callers that drive their own loop (see ``lekhana.chat``)."""
     if not configured():
         raise AIUnavailable(
-            "The AI isn't configured on this server (ANTHROPIC_API_KEY is not set).")
+            "The AI isn't configured on this server (OPENAI_API_KEY is not set).")
     return _client()
 
 
-def call(client, *, model, max_tokens, system, messages, tools=None, effort="high"):
-    """One request, with the errors mapped to AIFailure. Server-side fallbacks are
-    on: a safety decline is retried on Anthropic's recommended model rather than
-    surfacing as a refusal. Effort is ``high`` for one-shot asks and ``medium``
-    for discussion turns, which run several tool round-trips inside one web
-    request and would otherwise outlast the worker's timeout."""
-    kwargs = dict(model=model, max_tokens=max_tokens, betas=[FALLBACK_BETA], fallbacks="default",
-                  thinking={"type": "adaptive"}, output_config={"effort": effort},
-                  system=system, messages=messages)
-    if tools:
-        kwargs["tools"] = tools
+# ── the request ──────────────────────────────────────────────────────────────
+
+def _function(tool: dict) -> dict:
+    """A portal tool declaration as an OpenAI function tool."""
+    return {"type": "function",
+            "function": {"name": tool["name"], "description": tool.get("description", ""),
+                         "parameters": tool["input_schema"], "strict": tool.get("strict", True)}}
+
+
+def _short(text: str, limit: int = 120) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= limit else text[:limit - 1] + "…"
+
+
+def _create(client, **kwargs):
+    """One request, with the SDK's errors mapped to AIFailure."""
     try:
-        return client.beta.messages.create(**kwargs)
-    except anthropic.RateLimitError as exc:
-        raise AIFailure("The AI service is rate-limited right now. Try again in a minute.") from exc
-    except anthropic.APIStatusError as exc:
+        return client.chat.completions.create(**kwargs)
+    except openai.BadRequestError as exc:
+        # A model with no reasoning budget rejects the knob rather than
+        # ignoring it. The ask is still worth making without it.
+        if "reasoning_effort" in kwargs and "reasoning_effort" in str(exc):
+            kwargs.pop("reasoning_effort")
+            return _create(client, **kwargs)
         raise AIFailure(f"The AI service returned an error ({exc.status_code}). Try again later.") from exc
-    except anthropic.APIConnectionError as exc:
+    except openai.RateLimitError as exc:
+        raise AIFailure("The AI service is rate-limited right now. Try again in a minute.") from exc
+    except openai.APIStatusError as exc:
+        raise AIFailure(f"The AI service returned an error ({exc.status_code}). Try again later.") from exc
+    except openai.APIConnectionError as exc:
         raise AIFailure("Couldn't reach the AI service. Check the server's network, then try again.") from exc
 
+
+def _reply(response) -> Reply:
+    choice = response.choices[0]
+    message = choice.message
+    calls, replay = [], []
+    for item in (message.tool_calls or []):
+        function = getattr(item, "function", None)
+        if function is None:      # a non-function tool call; the portal declares none
+            continue
+        try:
+            payload = json.loads(function.arguments or "{}")
+        except ValueError:
+            payload = {}
+        calls.append(ToolCall(id=item.id, name=function.name,
+                              input=payload if isinstance(payload, dict) else {}))
+        replay.append({"id": item.id, "type": "function",
+                       "function": {"name": function.name, "arguments": function.arguments or "{}"}})
+    turn = {"role": "assistant", "content": message.content or ""}
+    if replay:
+        turn["tool_calls"] = replay
+    refusal = (message.refusal or "").strip()
+    if not refusal and choice.finish_reason == "content_filter":
+        refusal = "content filtered"
+    return Reply(text=(message.content or "").strip(), model=response.model, tool_calls=tuple(calls),
+                 message=turn, refusal=refusal, truncated=choice.finish_reason == "length")
+
+
+def call(client, *, model, max_tokens, system, messages, tools=None, schema=None, effort="high") -> Reply:
+    """One request, normalised to a :class:`Reply`. Effort is ``high`` for
+    one-shot asks and ``medium`` for discussion turns, which run several tool
+    round-trips inside one web request and would otherwise outlast the worker's
+    timeout. Reasoning tokens come out of ``max_tokens``, so the budget passed
+    here is well above the length of the answer it has to leave room for."""
+    kwargs = dict(model=model, max_completion_tokens=max_tokens, reasoning_effort=effort,
+                  messages=[{"role": "system", "content": system}] + list(messages))
+    if tools:
+        kwargs["tools"] = [_function(t) for t in tools]
+    if schema:
+        kwargs["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {"name": "candidates", "strict": True, "schema": schema}}
+    return _reply(_create(client, **kwargs))
+
+
+def tool_result(call: ToolCall, content: str) -> dict:
+    """What one tool answered, in the form the next request replays it in."""
+    return {"role": "tool", "tool_call_id": call.id, "content": content}
+
+
+# ── the ask ──────────────────────────────────────────────────────────────────
 
 def build_prompt(*, source: str, unit_id: str, unit_body: str | None, device, count: int,
                  instruction: str, constraint: str, purpose: str = "write") -> str:
@@ -120,38 +212,21 @@ def propose(*, source: str, unit_id: str, unit_body: str | None, device, count: 
     """Returns (candidates as ``{"text", "check"}`` dicts, the model that answered)."""
     if not configured():
         raise AIUnavailable(
-            "The AI co-writer isn't configured on this server (ANTHROPIC_API_KEY is not set). "
+            "The AI co-writer isn't configured on this server (OPENAI_API_KEY is not set). "
             "Your request is recorded; write this part yourself or ask again once it is set.")
     prompt = build_prompt(source=source, unit_id=unit_id, unit_body=unit_body, device=device,
                           count=count, instruction=instruction, constraint=constraint, purpose=purpose)
-    try:
-        response = _client().beta.messages.create(
-            model=settings.LEKHANA_MODEL,
-            max_tokens=16000,
-            betas=[FALLBACK_BETA],
-            fallbacks="default",
-            thinking={"type": "adaptive"},
-            output_config={"effort": "high", "format": {"type": "json_schema", "schema": SCHEMA}},
-            system=SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-        )
-    except anthropic.RateLimitError as exc:
-        raise AIFailure("The AI service is rate-limited right now. Try again in a minute.") from exc
-    except anthropic.APIStatusError as exc:
-        raise AIFailure(f"The AI service returned an error ({exc.status_code}). Try again later.") from exc
-    except anthropic.APIConnectionError as exc:
-        raise AIFailure("Couldn't reach the AI service. Check the server's network, then try again.") from exc
+    reply = call(_client(), model=settings.LEKHANA_MODEL, max_tokens=24000, system=SYSTEM,
+                 messages=[{"role": "user", "content": prompt}], schema=SCHEMA, effort="high")
 
-    if response.stop_reason == "refusal":
-        category = getattr(response.stop_details, "category", None) if response.stop_details else None
-        detail = f" ({category})" if category else ""
-        raise AIRefused(f"The AI declined this request{detail}. Rephrase it, or write this part yourself.")
-    if response.stop_reason == "max_tokens":
+    if reply.refusal:
+        raise AIRefused(f"The AI declined this request ({_short(reply.refusal)}). "
+                        "Rephrase it, or write this part yourself.")
+    if reply.truncated:
         raise AIFailure("The AI's answer was cut off. Ask for fewer candidates.")
 
-    text = next((b.text for b in response.content if b.type == "text"), "")
     try:
-        items = json.loads(text)["candidates"]
+        items = json.loads(reply.text)["candidates"]
     except (ValueError, KeyError, TypeError) as exc:
         raise AIFailure("The AI's answer couldn't be read. Try again.") from exc
     proposals = [
@@ -160,4 +235,4 @@ def propose(*, source: str, unit_id: str, unit_body: str | None, device, count: 
     ][:count]
     if not proposals:
         raise AIFailure("The AI returned no usable candidates. Try again with more detail.")
-    return proposals, response.model
+    return proposals, reply.model
